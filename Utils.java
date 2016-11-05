@@ -1,4 +1,8 @@
-public static Class Utils {
+package dsproject;
+import java.io.*;
+import java.util.*;
+
+public class Utils {
 	public static byte[] serialize(Object object) {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         ObjectOutput out = null;

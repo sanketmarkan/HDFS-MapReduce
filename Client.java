@@ -1,7 +1,9 @@
+package dsproject;
 import java.io.*;
 import java.util.*;
-import NameNode.*;
-import Utils;
+
+import Protobuf.HDFS.*;
+
 
 public class Client {
 	private static NameNode nameNode = new NameNode();
@@ -11,47 +13,47 @@ public class Client {
 		
 		if (args[0].equals("get")) {
 			fileName = args[1];
-			OpenFileRequest openFileRequest = OpenFileRequest.newBuilder();
+			OpenFileRequest.Builder openFileRequest = OpenFileRequest.newBuilder();
 			openFileRequest.setFileName(fileName);
 			openFileRequest.setForRead(true);
 
-			Object response = nameNode.openFile(Utils.serialize(openFileRequest));
+			byte[] response = nameNode.openFile(Utils.serialize(openFileRequest));
 			
-			OpenFileResponse openFileResponse = Utils.deserialize(response);
+			OpenFileResponse openFileResponse = (OpenFileResponse) Utils.deserialize(response);
 		} else if (args[0].equals("put")) {
 			fileName = args[1];
-			OpenFileRequest openFileRequest = OpenFileRequest.newBuilder();
+			OpenFileRequest.Builder openFileRequest = OpenFileRequest.newBuilder();
 			openFileRequest.setFileName(fileName);
 			openFileRequest.setForRead(false);
 
-			Object oFileRespose = nameNode.openFile(Utils.serialize(openFileRequest));
+			byte[] oFileRespose = nameNode.openFile(Utils.serialize(openFileRequest));
 			
-			OpenFileResponse openFileResponse = Utils.deserialize(oFileRespose);
-			ArrayList<Integer> blockList = openFileResponse.getBlockNumsList();
+			OpenFileResponse openFileResponse = (OpenFileResponse) Utils.deserialize(oFileRespose);
+			List<Integer> blockList = openFileResponse.getBlockNumsList();
 
-			BlockLocationRequest blockLocationRequest = BlockLocationRequest.newBuilder();
+			BlockLocationRequest.Builder blockLocationRequest = BlockLocationRequest.newBuilder();
 			for (Integer block : blockList) {
-				blockLocationRequest.setBlockNums(block);
+				blockLocationRequest.addBlockNums(block);
 			}
 
-			Object bLocationResponse = nameNode.getBlockLocations(Utils.serialize(blockLocationRequest))
-			BlockLocationResponse blockLocationResponse = Utils.deserialize(bLocationResponse);
+			byte[] bLocationResponse = nameNode.getBlockLocations(Utils.serialize(blockLocationRequest));
+			BlockLocationResponse blockLocationResponse = (BlockLocationResponse) Utils.deserialize(bLocationResponse);
 
 			int status = blockLocationResponse.getStatus();
 			if (status == 1) {
-				ArrayList<BlockLocations> blockLocationList =  blockLocationResponse.getBlockLocationsList();
+				List<BlockLocations> blockLocationList =  blockLocationResponse.getBlockLocationsList();
 				for (BlockLocations location : blockLocationList) {
-					DataNodeLocation dataNodeLocation = location.getLocation();
+					List<DataNodeLocation> dataNodeLocation = location.getLocationsList();
 
 					DataNode dataNode;
 					ArrayList<byte[]> dataBlocks = getDataBlocks(fileName);
 					for (byte[] dataBlock : dataBlocks) {
-						WriteBlockRequest writeBlockRequest = WriteBlockRequest.newBuilder();
-						writeBlockRequest.setBlockLocations(location);
-						writeBlockRequest.setData(dataBlock);
+						WriteBlockRequest.Builder writeBlockRequest = WriteBlockRequest.newBuilder();
+						writeBlockRequest.setBlockInfo(location);
+						writeBlockRequest.addData(dataBlock);
 
-						Object wResponse = dataNode.writeBlock(Utils.serialize(writeBlockRequest));
-						WriteBlockResponse writeBlockResponse = Utils.deserialize(wResponse);
+						byte[] wResponse = dataNode.writeBlock(Utils.serialize(writeBlockRequest));
+						WriteBlockResponse writeBlockResponse = (WriteBlockResponse) Utils.deserialize(wResponse);
 					}
 				}
 			} else {

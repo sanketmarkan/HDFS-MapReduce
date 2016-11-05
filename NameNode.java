@@ -1,9 +1,11 @@
+package dsproject;
 import java.rmi.RemoteException;
 import java.util.*;
 import java.io.*;
 import java.rmi.registry.Registry;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.server.UnicastRemoteObject;
+import dsproject.*;
 
 // import Protobuf.HDFS.DataNodeLocation;
 // import Protobuf.HDFS.ListFilesResponse;
