@@ -13,29 +13,55 @@ public class NameNode implements INameNode {
 	private static HashMap<Integer, ArrayList<Integer>> blockList = new HashMap<>();
 	private static HashMap<Integer, ArrayList<DataNodeLocation>> blockLocation = new HashMap<>();
 	
+	public static void main(String[] args) {
+
+	}
+
 	@Override
 	public byte[] openFile(byte[] inp) throws RemoteException {
-		// TODO Auto-generated method stub
-		String fileName = new String(inp);
-		return null;
+		OpenFileRequest openFileRequest = (OpenFileRequest) deserialize(inp);
+		String fileName = openFileRequest.getFileName();
+		boolean forRead = openFileRequest.getForRead();
+		
+		OpenFileResponse openFileResponse = OpenFileResponse.newBuilder();
+		openFileResponse.setStatus(1);
+		openFileResponse.setHandle(1);
+		openFileResponse.setBlockNums(1);
+		openFileResponse.setBlockNums(2);
+		openFileResponse.setBlockNums(3);
+		if (forRead) {
+			return serialize(openFileResponse);
+		} else {
+			return serialize(openFileResponse);
+		}
 	}
 
 	@Override
 	public byte[] closeFile(byte[] inp) throws RemoteException {
-		// TODO Auto-generated method stub
 		String fileName = new String(inp);
 		return null;
 	}
 
 	@Override
 	public byte[] getBlockLocations(byte[] inp) throws RemoteException {
-		// TODO Auto-generated method stub
-		return null;
+		BlockLocationRequest blockLocationRequest = (BlockLocationRequest) deserialize(inp);
+		BlockLocationResponse blockLocationResponse = BlockLocationResponse.newBuilder();
+
+		ArrayList<Integer> blockListRequested = blockLocationRequest.getBlockNumsList();
+		for (Integer block: blockListRequested) {
+			BlockLocations blockLocations = BlockLocations.newBuilder();
+			blockLocation.setBlockNumber(block);
+			ArrayList<DataNodeLocation> dataNodeLocations = blockLocation.get(block);
+			BlockLocations.setDataNodeLocation(dataNodeLocations);
+			
+			blockLocationResponse.setBlockLocations(blockLocations);
+		}
+		blockLocationResponse.setStatus(1);
+		return serialize(blockLocationResponse);
 	}
 
 	@Override
 	public byte[] assignBlock(byte[] inp) throws RemoteException {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
@@ -47,14 +73,38 @@ public class NameNode implements INameNode {
 
 	@Override
 	public byte[] blockReport(byte[] inp) throws RemoteException {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public byte[] heartBeat(byte[] inp) throws RemoteException {
-		// TODO Auto-generated method stub
 		return null;
 	}
+
+
+	public static byte[] serialize(Object object) {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        ObjectOutput out = null;
+        try {
+            out = new ObjectOutputStream(bos);
+            out.writeObject(object);
+            out.flush();
+            byte[] bArray = bos.toByteArray();
+            return bArray;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public static Object deserialize(byte[] response) {
+        ByteArrayInputStream bis = new ByteArrayInputStream(response);
+        ObjectInput in = null;
+        try {
+            in = new ObjectInputStream(bis);
+            return in.readObject();
+        } catch (Exception e) {
+            return null;
+        }
+    }
 
 }
