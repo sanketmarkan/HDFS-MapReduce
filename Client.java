@@ -15,7 +15,6 @@ public class Client {
 		} else if (args[0].equals("list")) {
 			
 		}
-		System.out.println(fileName);
-		
+		System.out.println(fileName);	
 	}
 }
