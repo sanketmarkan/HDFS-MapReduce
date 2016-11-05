@@ -5,9 +5,9 @@ import java.rmi.registry.Registry;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.server.UnicastRemoteObject;
 
-import Protobuf.HDFS.DataNodeLocation;
-import Protobuf.HDFS.ListFilesResponse;
-import Protobuf.HDFS.ListFilesRequest;
+// import Protobuf.HDFS.DataNodeLocation;
+// import Protobuf.HDFS.ListFilesResponse;
+import Protobuf.HDFS.*;
 
 import INameNode.*;
 
@@ -64,12 +64,11 @@ public class NameNode implements INameNode {
 		String fileName = openFileRequest.getFileName();
 		boolean forRead = openFileRequest.getForRead();
 		
-		OpenFileResponse openFileResponse = OpenFileResponse.newBuilder();
+		OpenFileResponse.Builder openFileResponse = OpenFileResponse.newBuilder();
 		openFileResponse.setStatus(1);
 		openFileResponse.setHandle(1);
-		openFileResponse.setBlockNums(1);
-		openFileResponse.setBlockNums(2);
-		openFileResponse.setBlockNums(3);
+		for(int a : blockList.get((fileToInt.get(fileName))) )
+			openFileResponse.addBlockNums(a);
 		if (forRead) {
 			return serialize(openFileResponse);
 		} else {
@@ -86,16 +85,16 @@ public class NameNode implements INameNode {
 	@Override
 	public byte[] getBlockLocations(byte[] inp) throws RemoteException {
 		BlockLocationRequest blockLocationRequest = (BlockLocationRequest) deserialize(inp);
-		BlockLocationResponse blockLocationResponse = BlockLocationResponse.newBuilder();
+		BlockLocationResponse.Builder blockLocationResponse = BlockLocationResponse.newBuilder();
 
-		ArrayList<Integer> blockListRequested = blockLocationRequest.getBlockNumsList();
+		List<Integer> blockListRequested = blockLocationRequest.getBlockNumsList();
 		for (Integer block: blockListRequested) {
-			BlockLocations blockLocations = BlockLocations.newBuilder();
-			blockLocation.setBlockNumber(block);
+			BlockLocations.Builder blockLocations = BlockLocations.newBuilder();
+			blockLocations.setBlockNumber(block);
 			ArrayList<DataNodeLocation> dataNodeLocations = blockLocation.get(block);
-			BlockLocations.setDataNodeLocation(dataNodeLocations);
-			
-			blockLocationResponse.setBlockLocations(blockLocations);
+			for (DataNodeLocation location: dataNodeLocations)
+				blockLocations.addLocations(location);
+			blockLocationResponse.addBlockLocations(blockLocations);
 		}
 		blockLocationResponse.setStatus(1);
 		return serialize(blockLocationResponse);
