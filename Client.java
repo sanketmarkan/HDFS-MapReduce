@@ -40,6 +40,20 @@ public class Client {
 			int status = blockLocationResponse.getStatus();
 			if (status == 1) {
 				ArrayList<BlockLocations> blockLocationList =  blockLocationResponse.getBlockLocationsList();
+				for (BlockLocations location : blockLocationList) {
+					DataNodeLocation dataNodeLocation = location.getLocation();
+
+					DataNode dataNode;
+					ArrayList<byte[]> dataBlocks = getDataBlocks(fileName);
+					for (byte[] dataBlock : dataBlocks) {
+						WriteBlockRequest writeBlockRequest = WriteBlockRequest.newBuilder();
+						writeBlockRequest.setBlockLocations(location);
+						writeBlockRequest.setData(dataBlock);
+
+						Object wResponse = dataNode.writeBlock(Utils.serialize(writeBlockRequest));
+						WriteBlockResponse writeBlockResponse = Utils.deserialize(wResponse);
+					}
+				}
 			} else {
 				// error
 			}
@@ -47,5 +61,10 @@ public class Client {
 			
 		}
 		System.out.println(fileName);	
+	}
+
+	public static ArrayList<byte[]> getDataBlocks(String fileName) {
+		String content = "This is content";
+		return null;
 	}
 }

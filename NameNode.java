@@ -91,9 +91,9 @@ public class NameNode implements INameNode {
 		ArrayList<Integer> blockListRequested = blockLocationRequest.getBlockNumsList();
 		for (Integer block: blockListRequested) {
 			BlockLocations blockLocations = BlockLocations.newBuilder();
-			blockLocation.setBlockNumber(block);
+			blockLocations.setBlockNumber(block);
 			ArrayList<DataNodeLocation> dataNodeLocations = blockLocation.get(block);
-			BlockLocations.setDataNodeLocation(dataNodeLocations);
+			blockLocations.setLocations(dataNodeLocations);
 			
 			blockLocationResponse.setBlockLocations(blockLocations);
 		}
