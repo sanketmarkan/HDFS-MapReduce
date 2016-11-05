@@ -1,6 +1,9 @@
 import java.rmi.RemoteException;
 import java.util.*;
 import java.io.*;
+import java.rmi.registry.Registry;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.server.UnicastRemoteObject;
 
 import Protobuf.HDFS.DataNodeLocation;
 import Protobuf.HDFS.ListFilesResponse;
@@ -14,6 +17,21 @@ public class NameNode implements INameNode {
 	private static HashMap<Integer, ArrayList<Integer>> blockList = new HashMap<>();
 	private static HashMap<String, ArrayList<String>> filesDir = new HashMap<>();
 	private static HashMap<Integer, ArrayList<DataNodeLocation>> blockLocation = new HashMap<>();
+	public static void main(String args[]){
+		init();
+	}
+
+    public static void init() {
+    	try {
+            NameNode obj = new NameNode();
+            INameNode stub = (INameNode) UnicastRemoteObject.exportObject(obj, 0);
+            Registry registry = LocateRegistry.getRegistry();
+            registry.bind("namenode", stub);
+            System.out.println("Namenode ready");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 	
 	public static byte[] serialize(Object object) {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
