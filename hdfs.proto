@@ -23,7 +23,7 @@ message CloseFileResponse {
 }
 
 message WriteBlockRequest {
-  required BlockLocations blockInfo = 1;
+  required int32 blockNumber = 1;
   repeated bytes data = 2;
 }
 
@@ -69,7 +69,7 @@ message ListFilesResponse {
 }
 
 message ReadBlockRequest {
-  optional int32 blockNumber = 1;
+  required int32 blockNumber = 1;
 }
 
 message ReadBlockResponse {
