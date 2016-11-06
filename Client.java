@@ -8,19 +8,25 @@ public class Client {
 	private static NameNode nameNode = new NameNode();
 
 	public static void main(String args[]) {
-		nameNode.test();
+		//nameNode.test();
 		String fileName = "";
-		
 		if (args[0].equals("get")) {
 			fileName = args[1];
+			System.out.println(fileName);
 			OpenFileRequest.Builder openFileRequest = OpenFileRequest.newBuilder();
 			openFileRequest.setFileName(fileName);
 			openFileRequest.setForRead(true);
 
-			byte[] response = nameNode.openFile(Utils.serialize(openFileRequest));
-			
-			OpenFileResponse openFileResponse = (OpenFileResponse) Utils.deserialize(response);
+			try {
+				byte[] oFileRespose = nameNode.openFile(Utils.serialize(openFileRequest.build()));
+				OpenFileResponse openFileResponse = (OpenFileResponse) Utils.deserialize(oFileRespose);
+				int status = openFileResponse.getStatus();
+				int handle = openFileResponse.getHandle();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		} else if (args[0].equals("put")) {
+			/*
 			fileName = args[1];
 			OpenFileRequest.Builder openFileRequest = OpenFileRequest.newBuilder();
 			openFileRequest.setFileName(fileName);
@@ -59,10 +65,10 @@ public class Client {
 			} else {
 				// error
 			}
+			*/
 		} else if (args[0].equals("list")) {
-			
+
 		}
-		System.out.println(fileName);	
 	}
 
 	public static ArrayList<byte[]> getDataBlocks(String fileName) {
