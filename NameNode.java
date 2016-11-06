@@ -43,8 +43,8 @@ public class NameNode implements INameNode {
 		String fileName = openFileRequest.getFileName();
 		boolean forRead = openFileRequest.getForRead();
 
-		System.out.println(fileName);
-		System.out.println(forRead);
+		//System.out.println(fileName);
+		//System.out.println(forRead);
 		
 		OpenFileResponse.Builder openFileResponse = OpenFileResponse.newBuilder();
 		openFileResponse.setStatus(1);
@@ -54,6 +54,7 @@ public class NameNode implements INameNode {
 		if (fileToInt.get(fileName) == null)
 			isFileExist = false;
 		
+		System.out.println(isFileExist);
 		if (forRead) {
 			if (isFileExist) {
 				for(int a : blockList.get((fileToInt.get(fileName))))
@@ -65,14 +66,19 @@ public class NameNode implements INameNode {
 			return Utils.serialize(openFileResponse.build());
 		} else {
 			if (isFileExist) {
-				// no update operations
-				int fileId = fileToInt.get(fileName, blockCounter);
-				DataNodeLocation dataNodeLocation = (DataNodeLocation) Utils.deserialize(assignBlock(fileId));
+				System.out.println("File already exists");	
+				int fileId = fileToInt.get(fileName);
+				assignBlock(fileId, blockCounter);
 				openFileResponse.addBlockNums(blockCounter);
 				blockCounter++;
 			} else {
+				System.out.println("Creating file....");	
 				fileToInt.put(fileName, fileCounter);
+				int fileId = fileCounter;
 				fileCounter++;
+				assignBlock(fileId, blockCounter);
+				openFileResponse.addBlockNums(blockCounter);
+				blockCounter++;
 			}
 			return Utils.serialize(openFileResponse.build());
 		}
@@ -103,21 +109,23 @@ public class NameNode implements INameNode {
 	}
 
 	@Override
-	public byte[] assignBlock(int fileId, int blockId) {
+	public void assignBlock(int fileId, int blockId) {
 		// insert in blockList
 		ArrayList<Integer> fileBlockList = blockList.get(fileId);
+		if (fileBlockList == null)
+			fileBlockList = new ArrayList<Integer>();
 		fileBlockList.add(blockId);
 		blockList.put(blockId, fileBlockList);
 
 		// insert in blockLocation
 		ArrayList<DataNodeLocation> fileBlockLocations = blockLocation.get(blockId);
 		DataNodeLocation.Builder dataNodeLocation = DataNodeLocation.newBuilder();
-		dataNodeLocation.setIp('10.1.1.1');
-		dataNodeLocation.setPort('80');
-		fileBlockLocations.add(dataNodeLocation);
+		dataNodeLocation.setIp("10.1.1.1");
+		dataNodeLocation.setPort(80);
+		if (fileBlockLocations == null)
+			fileBlockLocations = new ArrayList<DataNodeLocation>();
+		fileBlockLocations.add(dataNodeLocation.build());
 		blockLocation.put(blockId, fileBlockLocations);
-		
-		return Utils.serialize(dataNodeLocation.build());
 	}
 
 	@Override
@@ -141,6 +149,22 @@ public class NameNode implements INameNode {
 	}
 
 	public void test() {
-		System.out.println("lkasdf");
+		System.out.println(fileCounter);
+		System.out.println(blockCounter);
+		System.out.println("File->fileId");
+		for (String fileName: fileToInt.keySet()) {
+            int value = fileToInt.get(fileName);  
+            System.out.println(fileName + " " + value);  
+		}
+
+		System.out.println("------------------"); 
+
+		for (Integer key: blockList.keySet()) {
+            System.out.println("Block list of fileId: " + key);
+            ArrayList<Integer> blocks = blockList.get(key);
+            for (Integer block : blocks)
+            	System.out.println(block);
+            System.out.println("---------"); 
+		}
 	}
 }
