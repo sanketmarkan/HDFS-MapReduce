@@ -2525,15 +2525,15 @@ public final class HDFS {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>optional .BlockLocations blockInfo = 1;</code>
+     * <code>required .BlockLocations blockInfo = 1;</code>
      */
     boolean hasBlockInfo();
     /**
-     * <code>optional .BlockLocations blockInfo = 1;</code>
+     * <code>required .BlockLocations blockInfo = 1;</code>
      */
     Protobuf.HDFS.BlockLocations getBlockInfo();
     /**
-     * <code>optional .BlockLocations blockInfo = 1;</code>
+     * <code>required .BlockLocations blockInfo = 1;</code>
      */
     Protobuf.HDFS.BlockLocationsOrBuilder getBlockInfoOrBuilder();
 
@@ -2645,19 +2645,19 @@ public final class HDFS {
     public static final int BLOCKINFO_FIELD_NUMBER = 1;
     private Protobuf.HDFS.BlockLocations blockInfo_;
     /**
-     * <code>optional .BlockLocations blockInfo = 1;</code>
+     * <code>required .BlockLocations blockInfo = 1;</code>
      */
     public boolean hasBlockInfo() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
     /**
-     * <code>optional .BlockLocations blockInfo = 1;</code>
+     * <code>required .BlockLocations blockInfo = 1;</code>
      */
     public Protobuf.HDFS.BlockLocations getBlockInfo() {
       return blockInfo_ == null ? Protobuf.HDFS.BlockLocations.getDefaultInstance() : blockInfo_;
     }
     /**
-     * <code>optional .BlockLocations blockInfo = 1;</code>
+     * <code>required .BlockLocations blockInfo = 1;</code>
      */
     public Protobuf.HDFS.BlockLocationsOrBuilder getBlockInfoOrBuilder() {
       return blockInfo_ == null ? Protobuf.HDFS.BlockLocations.getDefaultInstance() : blockInfo_;
@@ -2691,6 +2691,14 @@ public final class HDFS {
       if (isInitialized == 1) return true;
       if (isInitialized == 0) return false;
 
+      if (!hasBlockInfo()) {
+        memoizedIsInitialized = 0;
+        return false;
+      }
+      if (!getBlockInfo().isInitialized()) {
+        memoizedIsInitialized = 0;
+        return false;
+      }
       memoizedIsInitialized = 1;
       return true;
     }
@@ -2992,6 +3000,12 @@ public final class HDFS {
       }
 
       public final boolean isInitialized() {
+        if (!hasBlockInfo()) {
+          return false;
+        }
+        if (!getBlockInfo().isInitialized()) {
+          return false;
+        }
         return true;
       }
 
@@ -3018,13 +3032,13 @@ public final class HDFS {
       private com.google.protobuf.SingleFieldBuilderV3<
           Protobuf.HDFS.BlockLocations, Protobuf.HDFS.BlockLocations.Builder, Protobuf.HDFS.BlockLocationsOrBuilder> blockInfoBuilder_;
       /**
-       * <code>optional .BlockLocations blockInfo = 1;</code>
+       * <code>required .BlockLocations blockInfo = 1;</code>
        */
       public boolean hasBlockInfo() {
         return ((bitField0_ & 0x00000001) == 0x00000001);
       }
       /**
-       * <code>optional .BlockLocations blockInfo = 1;</code>
+       * <code>required .BlockLocations blockInfo = 1;</code>
        */
       public Protobuf.HDFS.BlockLocations getBlockInfo() {
         if (blockInfoBuilder_ == null) {
@@ -3034,7 +3048,7 @@ public final class HDFS {
         }
       }
       /**
-       * <code>optional .BlockLocations blockInfo = 1;</code>
+       * <code>required .BlockLocations blockInfo = 1;</code>
        */
       public Builder setBlockInfo(Protobuf.HDFS.BlockLocations value) {
         if (blockInfoBuilder_ == null) {
@@ -3050,7 +3064,7 @@ public final class HDFS {
         return this;
       }
       /**
-       * <code>optional .BlockLocations blockInfo = 1;</code>
+       * <code>required .BlockLocations blockInfo = 1;</code>
        */
       public Builder setBlockInfo(
           Protobuf.HDFS.BlockLocations.Builder builderForValue) {
@@ -3064,7 +3078,7 @@ public final class HDFS {
         return this;
       }
       /**
-       * <code>optional .BlockLocations blockInfo = 1;</code>
+       * <code>required .BlockLocations blockInfo = 1;</code>
        */
       public Builder mergeBlockInfo(Protobuf.HDFS.BlockLocations value) {
         if (blockInfoBuilder_ == null) {
@@ -3084,7 +3098,7 @@ public final class HDFS {
         return this;
       }
       /**
-       * <code>optional .BlockLocations blockInfo = 1;</code>
+       * <code>required .BlockLocations blockInfo = 1;</code>
        */
       public Builder clearBlockInfo() {
         if (blockInfoBuilder_ == null) {
@@ -3097,7 +3111,7 @@ public final class HDFS {
         return this;
       }
       /**
-       * <code>optional .BlockLocations blockInfo = 1;</code>
+       * <code>required .BlockLocations blockInfo = 1;</code>
        */
       public Protobuf.HDFS.BlockLocations.Builder getBlockInfoBuilder() {
         bitField0_ |= 0x00000001;
@@ -3105,7 +3119,7 @@ public final class HDFS {
         return getBlockInfoFieldBuilder().getBuilder();
       }
       /**
-       * <code>optional .BlockLocations blockInfo = 1;</code>
+       * <code>required .BlockLocations blockInfo = 1;</code>
        */
       public Protobuf.HDFS.BlockLocationsOrBuilder getBlockInfoOrBuilder() {
         if (blockInfoBuilder_ != null) {
@@ -3116,7 +3130,7 @@ public final class HDFS {
         }
       }
       /**
-       * <code>optional .BlockLocations blockInfo = 1;</code>
+       * <code>required .BlockLocations blockInfo = 1;</code>
        */
       private com.google.protobuf.SingleFieldBuilderV3<
           Protobuf.HDFS.BlockLocations, Protobuf.HDFS.BlockLocations.Builder, Protobuf.HDFS.BlockLocationsOrBuilder> 
@@ -4354,11 +4368,11 @@ public final class HDFS {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>optional int32 blockNumber = 1;</code>
+     * <code>required int32 blockNumber = 1;</code>
      */
     boolean hasBlockNumber();
     /**
-     * <code>optional int32 blockNumber = 1;</code>
+     * <code>required int32 blockNumber = 1;</code>
      */
     int getBlockNumber();
 
@@ -4475,13 +4489,13 @@ public final class HDFS {
     public static final int BLOCKNUMBER_FIELD_NUMBER = 1;
     private int blockNumber_;
     /**
-     * <code>optional int32 blockNumber = 1;</code>
+     * <code>required int32 blockNumber = 1;</code>
      */
     public boolean hasBlockNumber() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
     /**
-     * <code>optional int32 blockNumber = 1;</code>
+     * <code>required int32 blockNumber = 1;</code>
      */
     public int getBlockNumber() {
       return blockNumber_;
@@ -4528,6 +4542,10 @@ public final class HDFS {
       if (isInitialized == 1) return true;
       if (isInitialized == 0) return false;
 
+      if (!hasBlockNumber()) {
+        memoizedIsInitialized = 0;
+        return false;
+      }
       memoizedIsInitialized = 1;
       return true;
     }
@@ -4840,6 +4858,9 @@ public final class HDFS {
       }
 
       public final boolean isInitialized() {
+        if (!hasBlockNumber()) {
+          return false;
+        }
         return true;
       }
 
@@ -4864,19 +4885,19 @@ public final class HDFS {
 
       private int blockNumber_ ;
       /**
-       * <code>optional int32 blockNumber = 1;</code>
+       * <code>required int32 blockNumber = 1;</code>
        */
       public boolean hasBlockNumber() {
         return ((bitField0_ & 0x00000001) == 0x00000001);
       }
       /**
-       * <code>optional int32 blockNumber = 1;</code>
+       * <code>required int32 blockNumber = 1;</code>
        */
       public int getBlockNumber() {
         return blockNumber_;
       }
       /**
-       * <code>optional int32 blockNumber = 1;</code>
+       * <code>required int32 blockNumber = 1;</code>
        */
       public Builder setBlockNumber(int value) {
         bitField0_ |= 0x00000001;
@@ -4885,7 +4906,7 @@ public final class HDFS {
         return this;
       }
       /**
-       * <code>optional int32 blockNumber = 1;</code>
+       * <code>required int32 blockNumber = 1;</code>
        */
       public Builder clearBlockNumber() {
         bitField0_ = (bitField0_ & ~0x00000001);
@@ -5898,6 +5919,12 @@ public final class HDFS {
       if (isInitialized == 1) return true;
       if (isInitialized == 0) return false;
 
+      for (int i = 0; i < getBlockLocationsCount(); i++) {
+        if (!getBlockLocations(i).isInitialized()) {
+          memoizedIsInitialized = 0;
+          return false;
+        }
+      }
       memoizedIsInitialized = 1;
       return true;
     }
@@ -6210,6 +6237,11 @@ public final class HDFS {
       }
 
       public final boolean isInitialized() {
+        for (int i = 0; i < getBlockLocationsCount(); i++) {
+          if (!getBlockLocations(i).isInitialized()) {
+            return false;
+          }
+        }
         return true;
       }
 
@@ -7204,6 +7236,12 @@ public final class HDFS {
       if (isInitialized == 1) return true;
       if (isInitialized == 0) return false;
 
+      if (hasNewBlock()) {
+        if (!getNewBlock().isInitialized()) {
+          memoizedIsInitialized = 0;
+          return false;
+        }
+      }
       memoizedIsInitialized = 1;
       return true;
     }
@@ -7495,6 +7533,11 @@ public final class HDFS {
       }
 
       public final boolean isInitialized() {
+        if (hasNewBlock()) {
+          if (!getNewBlock().isInitialized()) {
+            return false;
+          }
+        }
         return true;
       }
 
@@ -12489,11 +12532,11 @@ public final class HDFS {
       "\n\tblockNums\030\003 \003(\005\"\"\n\020CloseFileRequest\022\016\n" +
       "\006handle\030\001 \001(\005\"#\n\021CloseFileResponse\022\016\n\006st" +
       "atus\030\001 \001(\005\"E\n\021WriteBlockRequest\022\"\n\tblock" +
-      "Info\030\001 \001(\0132\017.BlockLocations\022\014\n\004data\030\002 \003(" +
+      "Info\030\001 \002(\0132\017.BlockLocations\022\014\n\004data\030\002 \003(" +
       "\014\"$\n\022WriteBlockResponse\022\016\n\006status\030\001 \001(\005\"" +
       ",\n\020DataNodeLocation\022\n\n\002ip\030\001 \001(\t\022\014\n\004port\030" +
       "\002 \001(\005\"K\n\016BlockLocations\022\023\n\013blockNumber\030\001",
-      " \001(\005\022$\n\tlocations\030\002 \003(\0132\021.DataNodeLocati" +
+      " \002(\005\022$\n\tlocations\030\002 \003(\0132\021.DataNodeLocati" +
       "on\")\n\024BlockLocationRequest\022\021\n\tblockNums\030" +
       "\001 \003(\005\"P\n\025BlockLocationResponse\022\016\n\006status" +
       "\030\001 \001(\005\022\'\n\016blockLocations\030\002 \003(\0132\017.BlockLo" +
