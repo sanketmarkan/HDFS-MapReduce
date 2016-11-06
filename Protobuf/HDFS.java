@@ -2525,17 +2525,13 @@ public final class HDFS {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>required .BlockLocations blockInfo = 1;</code>
+     * <code>required int32 blockNumber = 1;</code>
      */
-    boolean hasBlockInfo();
+    boolean hasBlockNumber();
     /**
-     * <code>required .BlockLocations blockInfo = 1;</code>
+     * <code>required int32 blockNumber = 1;</code>
      */
-    Protobuf.HDFS.BlockLocations getBlockInfo();
-    /**
-     * <code>required .BlockLocations blockInfo = 1;</code>
-     */
-    Protobuf.HDFS.BlockLocationsOrBuilder getBlockInfoOrBuilder();
+    int getBlockNumber();
 
     /**
      * <code>repeated bytes data = 2;</code>
@@ -2562,6 +2558,7 @@ public final class HDFS {
       super(builder);
     }
     private WriteBlockRequest() {
+      blockNumber_ = 0;
       data_ = java.util.Collections.emptyList();
     }
 
@@ -2593,17 +2590,9 @@ public final class HDFS {
               }
               break;
             }
-            case 10: {
-              Protobuf.HDFS.BlockLocations.Builder subBuilder = null;
-              if (((bitField0_ & 0x00000001) == 0x00000001)) {
-                subBuilder = blockInfo_.toBuilder();
-              }
-              blockInfo_ = input.readMessage(Protobuf.HDFS.BlockLocations.PARSER, extensionRegistry);
-              if (subBuilder != null) {
-                subBuilder.mergeFrom(blockInfo_);
-                blockInfo_ = subBuilder.buildPartial();
-              }
+            case 8: {
               bitField0_ |= 0x00000001;
+              blockNumber_ = input.readInt32();
               break;
             }
             case 18: {
@@ -2642,25 +2631,19 @@ public final class HDFS {
     }
 
     private int bitField0_;
-    public static final int BLOCKINFO_FIELD_NUMBER = 1;
-    private Protobuf.HDFS.BlockLocations blockInfo_;
+    public static final int BLOCKNUMBER_FIELD_NUMBER = 1;
+    private int blockNumber_;
     /**
-     * <code>required .BlockLocations blockInfo = 1;</code>
+     * <code>required int32 blockNumber = 1;</code>
      */
-    public boolean hasBlockInfo() {
+    public boolean hasBlockNumber() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
     /**
-     * <code>required .BlockLocations blockInfo = 1;</code>
+     * <code>required int32 blockNumber = 1;</code>
      */
-    public Protobuf.HDFS.BlockLocations getBlockInfo() {
-      return blockInfo_ == null ? Protobuf.HDFS.BlockLocations.getDefaultInstance() : blockInfo_;
-    }
-    /**
-     * <code>required .BlockLocations blockInfo = 1;</code>
-     */
-    public Protobuf.HDFS.BlockLocationsOrBuilder getBlockInfoOrBuilder() {
-      return blockInfo_ == null ? Protobuf.HDFS.BlockLocations.getDefaultInstance() : blockInfo_;
+    public int getBlockNumber() {
+      return blockNumber_;
     }
 
     public static final int DATA_FIELD_NUMBER = 2;
@@ -2691,11 +2674,7 @@ public final class HDFS {
       if (isInitialized == 1) return true;
       if (isInitialized == 0) return false;
 
-      if (!hasBlockInfo()) {
-        memoizedIsInitialized = 0;
-        return false;
-      }
-      if (!getBlockInfo().isInitialized()) {
+      if (!hasBlockNumber()) {
         memoizedIsInitialized = 0;
         return false;
       }
@@ -2706,7 +2685,7 @@ public final class HDFS {
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
-        output.writeMessage(1, getBlockInfo());
+        output.writeInt32(1, blockNumber_);
       }
       for (int i = 0; i < data_.size(); i++) {
         output.writeBytes(2, data_.get(i));
@@ -2721,7 +2700,7 @@ public final class HDFS {
       size = 0;
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(1, getBlockInfo());
+          .computeInt32Size(1, blockNumber_);
       }
       {
         int dataSize = 0;
@@ -2749,10 +2728,10 @@ public final class HDFS {
       Protobuf.HDFS.WriteBlockRequest other = (Protobuf.HDFS.WriteBlockRequest) obj;
 
       boolean result = true;
-      result = result && (hasBlockInfo() == other.hasBlockInfo());
-      if (hasBlockInfo()) {
-        result = result && getBlockInfo()
-            .equals(other.getBlockInfo());
+      result = result && (hasBlockNumber() == other.hasBlockNumber());
+      if (hasBlockNumber()) {
+        result = result && (getBlockNumber()
+            == other.getBlockNumber());
       }
       result = result && getDataList()
           .equals(other.getDataList());
@@ -2767,9 +2746,9 @@ public final class HDFS {
       }
       int hash = 41;
       hash = (19 * hash) + getDescriptorForType().hashCode();
-      if (hasBlockInfo()) {
-        hash = (37 * hash) + BLOCKINFO_FIELD_NUMBER;
-        hash = (53 * hash) + getBlockInfo().hashCode();
+      if (hasBlockNumber()) {
+        hash = (37 * hash) + BLOCKNUMBER_FIELD_NUMBER;
+        hash = (53 * hash) + getBlockNumber();
       }
       if (getDataCount() > 0) {
         hash = (37 * hash) + DATA_FIELD_NUMBER;
@@ -2889,16 +2868,11 @@ public final class HDFS {
       private void maybeForceBuilderInitialization() {
         if (com.google.protobuf.GeneratedMessageV3
                 .alwaysUseFieldBuilders) {
-          getBlockInfoFieldBuilder();
         }
       }
       public Builder clear() {
         super.clear();
-        if (blockInfoBuilder_ == null) {
-          blockInfo_ = null;
-        } else {
-          blockInfoBuilder_.clear();
-        }
+        blockNumber_ = 0;
         bitField0_ = (bitField0_ & ~0x00000001);
         data_ = java.util.Collections.emptyList();
         bitField0_ = (bitField0_ & ~0x00000002);
@@ -2929,11 +2903,7 @@ public final class HDFS {
         if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
           to_bitField0_ |= 0x00000001;
         }
-        if (blockInfoBuilder_ == null) {
-          result.blockInfo_ = blockInfo_;
-        } else {
-          result.blockInfo_ = blockInfoBuilder_.build();
-        }
+        result.blockNumber_ = blockNumber_;
         if (((bitField0_ & 0x00000002) == 0x00000002)) {
           data_ = java.util.Collections.unmodifiableList(data_);
           bitField0_ = (bitField0_ & ~0x00000002);
@@ -2981,8 +2951,8 @@ public final class HDFS {
 
       public Builder mergeFrom(Protobuf.HDFS.WriteBlockRequest other) {
         if (other == Protobuf.HDFS.WriteBlockRequest.getDefaultInstance()) return this;
-        if (other.hasBlockInfo()) {
-          mergeBlockInfo(other.getBlockInfo());
+        if (other.hasBlockNumber()) {
+          setBlockNumber(other.getBlockNumber());
         }
         if (!other.data_.isEmpty()) {
           if (data_.isEmpty()) {
@@ -3000,10 +2970,7 @@ public final class HDFS {
       }
 
       public final boolean isInitialized() {
-        if (!hasBlockInfo()) {
-          return false;
-        }
-        if (!getBlockInfo().isInitialized()) {
+        if (!hasBlockNumber()) {
           return false;
         }
         return true;
@@ -3028,122 +2995,36 @@ public final class HDFS {
       }
       private int bitField0_;
 
-      private Protobuf.HDFS.BlockLocations blockInfo_ = null;
-      private com.google.protobuf.SingleFieldBuilderV3<
-          Protobuf.HDFS.BlockLocations, Protobuf.HDFS.BlockLocations.Builder, Protobuf.HDFS.BlockLocationsOrBuilder> blockInfoBuilder_;
+      private int blockNumber_ ;
       /**
-       * <code>required .BlockLocations blockInfo = 1;</code>
+       * <code>required int32 blockNumber = 1;</code>
        */
-      public boolean hasBlockInfo() {
+      public boolean hasBlockNumber() {
         return ((bitField0_ & 0x00000001) == 0x00000001);
       }
       /**
-       * <code>required .BlockLocations blockInfo = 1;</code>
+       * <code>required int32 blockNumber = 1;</code>
        */
-      public Protobuf.HDFS.BlockLocations getBlockInfo() {
-        if (blockInfoBuilder_ == null) {
-          return blockInfo_ == null ? Protobuf.HDFS.BlockLocations.getDefaultInstance() : blockInfo_;
-        } else {
-          return blockInfoBuilder_.getMessage();
-        }
+      public int getBlockNumber() {
+        return blockNumber_;
       }
       /**
-       * <code>required .BlockLocations blockInfo = 1;</code>
+       * <code>required int32 blockNumber = 1;</code>
        */
-      public Builder setBlockInfo(Protobuf.HDFS.BlockLocations value) {
-        if (blockInfoBuilder_ == null) {
-          if (value == null) {
-            throw new NullPointerException();
-          }
-          blockInfo_ = value;
-          onChanged();
-        } else {
-          blockInfoBuilder_.setMessage(value);
-        }
+      public Builder setBlockNumber(int value) {
         bitField0_ |= 0x00000001;
-        return this;
-      }
-      /**
-       * <code>required .BlockLocations blockInfo = 1;</code>
-       */
-      public Builder setBlockInfo(
-          Protobuf.HDFS.BlockLocations.Builder builderForValue) {
-        if (blockInfoBuilder_ == null) {
-          blockInfo_ = builderForValue.build();
-          onChanged();
-        } else {
-          blockInfoBuilder_.setMessage(builderForValue.build());
-        }
-        bitField0_ |= 0x00000001;
-        return this;
-      }
-      /**
-       * <code>required .BlockLocations blockInfo = 1;</code>
-       */
-      public Builder mergeBlockInfo(Protobuf.HDFS.BlockLocations value) {
-        if (blockInfoBuilder_ == null) {
-          if (((bitField0_ & 0x00000001) == 0x00000001) &&
-              blockInfo_ != null &&
-              blockInfo_ != Protobuf.HDFS.BlockLocations.getDefaultInstance()) {
-            blockInfo_ =
-              Protobuf.HDFS.BlockLocations.newBuilder(blockInfo_).mergeFrom(value).buildPartial();
-          } else {
-            blockInfo_ = value;
-          }
-          onChanged();
-        } else {
-          blockInfoBuilder_.mergeFrom(value);
-        }
-        bitField0_ |= 0x00000001;
-        return this;
-      }
-      /**
-       * <code>required .BlockLocations blockInfo = 1;</code>
-       */
-      public Builder clearBlockInfo() {
-        if (blockInfoBuilder_ == null) {
-          blockInfo_ = null;
-          onChanged();
-        } else {
-          blockInfoBuilder_.clear();
-        }
-        bitField0_ = (bitField0_ & ~0x00000001);
-        return this;
-      }
-      /**
-       * <code>required .BlockLocations blockInfo = 1;</code>
-       */
-      public Protobuf.HDFS.BlockLocations.Builder getBlockInfoBuilder() {
-        bitField0_ |= 0x00000001;
+        blockNumber_ = value;
         onChanged();
-        return getBlockInfoFieldBuilder().getBuilder();
+        return this;
       }
       /**
-       * <code>required .BlockLocations blockInfo = 1;</code>
+       * <code>required int32 blockNumber = 1;</code>
        */
-      public Protobuf.HDFS.BlockLocationsOrBuilder getBlockInfoOrBuilder() {
-        if (blockInfoBuilder_ != null) {
-          return blockInfoBuilder_.getMessageOrBuilder();
-        } else {
-          return blockInfo_ == null ?
-              Protobuf.HDFS.BlockLocations.getDefaultInstance() : blockInfo_;
-        }
-      }
-      /**
-       * <code>required .BlockLocations blockInfo = 1;</code>
-       */
-      private com.google.protobuf.SingleFieldBuilderV3<
-          Protobuf.HDFS.BlockLocations, Protobuf.HDFS.BlockLocations.Builder, Protobuf.HDFS.BlockLocationsOrBuilder> 
-          getBlockInfoFieldBuilder() {
-        if (blockInfoBuilder_ == null) {
-          blockInfoBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
-              Protobuf.HDFS.BlockLocations, Protobuf.HDFS.BlockLocations.Builder, Protobuf.HDFS.BlockLocationsOrBuilder>(
-                  getBlockInfo(),
-                  getParentForChildren(),
-                  isClean());
-          blockInfo_ = null;
-        }
-        return blockInfoBuilder_;
+      public Builder clearBlockNumber() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        blockNumber_ = 0;
+        onChanged();
+        return this;
       }
 
       private java.util.List<com.google.protobuf.ByteString> data_ = java.util.Collections.emptyList();
@@ -9009,11 +8890,11 @@ public final class HDFS {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>optional int32 blockNumber = 1;</code>
+     * <code>required int32 blockNumber = 1;</code>
      */
     boolean hasBlockNumber();
     /**
-     * <code>optional int32 blockNumber = 1;</code>
+     * <code>required int32 blockNumber = 1;</code>
      */
     int getBlockNumber();
   }
@@ -9093,13 +8974,13 @@ public final class HDFS {
     public static final int BLOCKNUMBER_FIELD_NUMBER = 1;
     private int blockNumber_;
     /**
-     * <code>optional int32 blockNumber = 1;</code>
+     * <code>required int32 blockNumber = 1;</code>
      */
     public boolean hasBlockNumber() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
     /**
-     * <code>optional int32 blockNumber = 1;</code>
+     * <code>required int32 blockNumber = 1;</code>
      */
     public int getBlockNumber() {
       return blockNumber_;
@@ -9111,6 +8992,10 @@ public final class HDFS {
       if (isInitialized == 1) return true;
       if (isInitialized == 0) return false;
 
+      if (!hasBlockNumber()) {
+        memoizedIsInitialized = 0;
+        return false;
+      }
       memoizedIsInitialized = 1;
       return true;
     }
@@ -9368,6 +9253,9 @@ public final class HDFS {
       }
 
       public final boolean isInitialized() {
+        if (!hasBlockNumber()) {
+          return false;
+        }
         return true;
       }
 
@@ -9392,19 +9280,19 @@ public final class HDFS {
 
       private int blockNumber_ ;
       /**
-       * <code>optional int32 blockNumber = 1;</code>
+       * <code>required int32 blockNumber = 1;</code>
        */
       public boolean hasBlockNumber() {
         return ((bitField0_ & 0x00000001) == 0x00000001);
       }
       /**
-       * <code>optional int32 blockNumber = 1;</code>
+       * <code>required int32 blockNumber = 1;</code>
        */
       public int getBlockNumber() {
         return blockNumber_;
       }
       /**
-       * <code>optional int32 blockNumber = 1;</code>
+       * <code>required int32 blockNumber = 1;</code>
        */
       public Builder setBlockNumber(int value) {
         bitField0_ |= 0x00000001;
@@ -9413,7 +9301,7 @@ public final class HDFS {
         return this;
       }
       /**
-       * <code>optional int32 blockNumber = 1;</code>
+       * <code>required int32 blockNumber = 1;</code>
        */
       public Builder clearBlockNumber() {
         bitField0_ = (bitField0_ & ~0x00000001);
@@ -12531,29 +12419,28 @@ public final class HDFS {
       "sponse\022\016\n\006status\030\001 \001(\005\022\016\n\006handle\030\002 \001(\005\022\021" +
       "\n\tblockNums\030\003 \003(\005\"\"\n\020CloseFileRequest\022\016\n" +
       "\006handle\030\001 \001(\005\"#\n\021CloseFileResponse\022\016\n\006st" +
-      "atus\030\001 \001(\005\"E\n\021WriteBlockRequest\022\"\n\tblock" +
-      "Info\030\001 \002(\0132\017.BlockLocations\022\014\n\004data\030\002 \003(" +
-      "\014\"$\n\022WriteBlockResponse\022\016\n\006status\030\001 \001(\005\"" +
-      ",\n\020DataNodeLocation\022\n\n\002ip\030\001 \001(\t\022\014\n\004port\030" +
-      "\002 \001(\005\"K\n\016BlockLocations\022\023\n\013blockNumber\030\001",
-      " \002(\005\022$\n\tlocations\030\002 \003(\0132\021.DataNodeLocati" +
-      "on\")\n\024BlockLocationRequest\022\021\n\tblockNums\030" +
-      "\001 \003(\005\"P\n\025BlockLocationResponse\022\016\n\006status" +
-      "\030\001 \001(\005\022\'\n\016blockLocations\030\002 \003(\0132\017.BlockLo" +
-      "cations\"$\n\022AssignBlockRequest\022\016\n\006handle\030" +
-      "\001 \001(\005\"H\n\023AssignBlockResponse\022\016\n\006status\030\001" +
-      " \001(\005\022!\n\010newBlock\030\002 \001(\0132\017.BlockLocations\"" +
-      "#\n\020ListFilesRequest\022\017\n\007dirName\030\001 \001(\t\"6\n\021" +
-      "ListFilesResponse\022\016\n\006status\030\001 \001(\005\022\021\n\tfil" +
-      "eNames\030\002 \003(\t\"\'\n\020ReadBlockRequest\022\023\n\013bloc",
-      "kNumber\030\001 \001(\005\"1\n\021ReadBlockResponse\022\016\n\006st" +
-      "atus\030\001 \001(\005\022\014\n\004data\030\002 \003(\014\"[\n\022BlockReportR" +
-      "equest\022\n\n\002id\030\001 \001(\005\022#\n\010location\030\002 \001(\0132\021.D" +
-      "ataNodeLocation\022\024\n\014blockNumbers\030\003 \003(\005\"%\n" +
-      "\023BlockReportResponse\022\016\n\006status\030\001 \003(\005\"\036\n\020" +
-      "HeartBeatRequest\022\n\n\002id\030\001 \001(\005\"#\n\021HeartBea" +
-      "tResponse\022\016\n\006status\030\001 \001(\005B\020\n\010ProtobufB\004H" +
-      "DFS"
+      "atus\030\001 \001(\005\"6\n\021WriteBlockRequest\022\023\n\013block" +
+      "Number\030\001 \002(\005\022\014\n\004data\030\002 \003(\014\"$\n\022WriteBlock" +
+      "Response\022\016\n\006status\030\001 \001(\005\",\n\020DataNodeLoca" +
+      "tion\022\n\n\002ip\030\001 \001(\t\022\014\n\004port\030\002 \001(\005\"K\n\016BlockL" +
+      "ocations\022\023\n\013blockNumber\030\001 \002(\005\022$\n\tlocatio",
+      "ns\030\002 \003(\0132\021.DataNodeLocation\")\n\024BlockLoca" +
+      "tionRequest\022\021\n\tblockNums\030\001 \003(\005\"P\n\025BlockL" +
+      "ocationResponse\022\016\n\006status\030\001 \001(\005\022\'\n\016block" +
+      "Locations\030\002 \003(\0132\017.BlockLocations\"$\n\022Assi" +
+      "gnBlockRequest\022\016\n\006handle\030\001 \001(\005\"H\n\023Assign" +
+      "BlockResponse\022\016\n\006status\030\001 \001(\005\022!\n\010newBloc" +
+      "k\030\002 \001(\0132\017.BlockLocations\"#\n\020ListFilesReq" +
+      "uest\022\017\n\007dirName\030\001 \001(\t\"6\n\021ListFilesRespon" +
+      "se\022\016\n\006status\030\001 \001(\005\022\021\n\tfileNames\030\002 \003(\t\"\'\n" +
+      "\020ReadBlockRequest\022\023\n\013blockNumber\030\001 \002(\005\"1",
+      "\n\021ReadBlockResponse\022\016\n\006status\030\001 \001(\005\022\014\n\004d" +
+      "ata\030\002 \003(\014\"[\n\022BlockReportRequest\022\n\n\002id\030\001 " +
+      "\001(\005\022#\n\010location\030\002 \001(\0132\021.DataNodeLocation" +
+      "\022\024\n\014blockNumbers\030\003 \003(\005\"%\n\023BlockReportRes" +
+      "ponse\022\016\n\006status\030\001 \003(\005\"\036\n\020HeartBeatReques" +
+      "t\022\n\n\002id\030\001 \001(\005\"#\n\021HeartBeatResponse\022\016\n\006st" +
+      "atus\030\001 \001(\005B\020\n\010ProtobufB\004HDFS"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -12596,7 +12483,7 @@ public final class HDFS {
     internal_static_WriteBlockRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_WriteBlockRequest_descriptor,
-        new java.lang.String[] { "BlockInfo", "Data", });
+        new java.lang.String[] { "BlockNumber", "Data", });
     internal_static_WriteBlockResponse_descriptor =
       getDescriptor().getMessageTypes().get(5);
     internal_static_WriteBlockResponse_fieldAccessorTable = new
