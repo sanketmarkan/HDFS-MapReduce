@@ -1,4 +1,5 @@
 import java.rmi.RemoteException;
+import IDataNode.*;
 public class DataNode implements IDataNode {
 
 	@Override

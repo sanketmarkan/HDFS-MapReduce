@@ -1,14 +1,14 @@
-package dsproject;
 import java.io.*;
 import java.util.*;
 
 import Protobuf.HDFS.*;
-
+import Utils.*;
 
 public class Client {
 	private static NameNode nameNode = new NameNode();
 
 	public static void main(String args[]) {
+		nameNode.test();
 		String fileName = "";
 		
 		if (args[0].equals("get")) {
