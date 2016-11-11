@@ -17,7 +17,7 @@ public interface INameNode extends Remote{
 	
 	/* AssignBlockResponse assignBlock(AssignBlockRequest) */
 	/* Method to assign a block which will return the replicated block locations */
-	void assignBlock(int fileId, int blockId) throws RemoteException;
+	byte[] assignBlock(byte[] inp) throws RemoteException;
 	
 	/* ListFilesResponse list(ListFilesRequest) */
 	/* List the file names (no directories needed for current implementation */

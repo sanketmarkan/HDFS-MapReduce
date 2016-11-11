@@ -44,6 +44,10 @@ public class Client {
 		try {
 			byte[] oFileRespose = nameNode.openFile(Utils.serialize(openFileRequest.build()));
 			OpenFileResponse openFileResponse = (OpenFileResponse) Utils.deserialize(oFileRespose);
+			List<Integer> blockList = openFileResponse.getBlockNumsList();
+			for (Integer block : blockList) {
+				System.out.println(block);
+			}
 			int status = openFileResponse.getStatus();
 			int handle = openFileResponse.getHandle();
 		} catch (Exception e) {
@@ -52,6 +56,7 @@ public class Client {
 	}
 
 	private static void put_file(String fileName) {
+		int status, handle;
 		OpenFileRequest.Builder openFileRequest = OpenFileRequest.newBuilder();
 		openFileRequest.setFileName(fileName);
 		openFileRequest.setForRead(false);
@@ -59,15 +64,28 @@ public class Client {
 			byte[] oFileRespose = nameNode.openFile(Utils.serialize(openFileRequest.build()));
 			OpenFileResponse openFileResponse = (OpenFileResponse) Utils.deserialize(oFileRespose);
 			List<Integer> blockList = openFileResponse.getBlockNumsList();
-			int status = openFileResponse.getStatus();
-			int handle = openFileResponse.getHandle();
+			status = openFileResponse.getStatus();
+			handle = openFileResponse.getHandle();
 
 			System.out.println(status);
 			System.out.println(handle);
-			nameNode.test();
+			//nameNode.test();
+			for (int i=0; i<3; i++) {
+				AssignBlockRequest.Builder assignBlockRequest = AssignBlockRequest.newBuilder();
+				assignBlockRequest.setHandle(handle);
+
+				byte[] aBlockResponse = nameNode.assignBlock(Utils.serialize(assignBlockRequest.build()));
+				AssignBlockResponse assignBlockResponse = (AssignBlockResponse) Utils.deserialize(aBlockResponse);
+
+				int assignBlockStatus = assignBlockResponse.getStatus();
+				BlockLocations blockLocations = assignBlockResponse.getNewBlock();
+				System.out.println(assignBlockStatus);
+			}
+
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		
 		
 		/*
 		BlockLocationRequest.Builder blockLocationRequest = BlockLocationRequest.newBuilder();
