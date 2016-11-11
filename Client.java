@@ -20,13 +20,26 @@ public class Client {
 			debug();
 		}*/
 		Scanner in = new Scanner(System.in);
+		String line = "";
 		String command = "";
+		String fileName = "";
 		while (true) {
-			command = in.nextLine();
+			line = in.nextLine();
+			try {
+				String[] arguments = line.trim().split("\\s+");
+				command = arguments[0];
+				fileName = arguments[1];
+			} catch (Exception e) {
+				if (command.equals("get") || command.equals("put")) {
+					System.out.println("<command> <filename>");
+					continue;
+				}
+			}
+
 			if (command.equals("get")) {
-				get_file("file");
+				get_file(fileName);
 			} else if (command.equals("put")) {
-				put_file("file");
+				put_file(fileName);
 			} else if (command.equals("list")) {
 
 			} else if (command.equals("debug")) {
@@ -56,7 +69,10 @@ public class Client {
 	}
 
 	private static void put_file(String fileName) {
-		int status, handle;
+		int status;
+		int fileHandle = -1;
+
+		System.out.println("Opening file...");
 		OpenFileRequest.Builder openFileRequest = OpenFileRequest.newBuilder();
 		openFileRequest.setFileName(fileName);
 		openFileRequest.setForRead(false);
@@ -65,28 +81,42 @@ public class Client {
 			OpenFileResponse openFileResponse = (OpenFileResponse) Utils.deserialize(oFileRespose);
 			List<Integer> blockList = openFileResponse.getBlockNumsList();
 			status = openFileResponse.getStatus();
-			handle = openFileResponse.getHandle();
+			fileHandle = openFileResponse.getHandle();
 
-			System.out.println(status);
-			System.out.println(handle);
+			System.out.println("file open status: " + status);
+			System.out.println("file handle: " + fileHandle);
 			//nameNode.test();
 			for (int i=0; i<3; i++) {
 				AssignBlockRequest.Builder assignBlockRequest = AssignBlockRequest.newBuilder();
-				assignBlockRequest.setHandle(handle);
+				assignBlockRequest.setHandle(fileHandle);
 
 				byte[] aBlockResponse = nameNode.assignBlock(Utils.serialize(assignBlockRequest.build()));
 				AssignBlockResponse assignBlockResponse = (AssignBlockResponse) Utils.deserialize(aBlockResponse);
 
 				int assignBlockStatus = assignBlockResponse.getStatus();
 				BlockLocations blockLocations = assignBlockResponse.getNewBlock();
-				System.out.println(assignBlockStatus);
+				System.out.println("block assign status: " + assignBlockStatus);
 			}
 
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		
-		
+		try {
+			if (fileHandle != -1) {
+				System.out.println("Closing file...");
+				CloseFileRequest.Builder closeFileRequest = CloseFileRequest.newBuilder();
+				closeFileRequest.setHandle(fileHandle);
+
+				byte[] cFileRequest = nameNode.closeFile(Utils.serialize(closeFileRequest.build()));
+
+				CloseFileResponse closeFileResponse = (CloseFileResponse) Utils.deserialize(cFileRequest);
+				int closeStatus = closeFileResponse.getStatus();
+				System.out.println("close file status: " + closeStatus);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		/*
 		BlockLocationRequest.Builder blockLocationRequest = BlockLocationRequest.newBuilder();
 		for (Integer block : blockList) {

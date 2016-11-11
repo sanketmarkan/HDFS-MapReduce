@@ -18,8 +18,13 @@ public class NameNode implements INameNode {
 	private static HashMap<Integer, ArrayList<Integer>> blockList = new HashMap<>();
 	private static HashMap<String, ArrayList<String>> filesDir = new HashMap<>();
 	private static HashMap<Integer, ArrayList<DataNodeLocation>> blockLocation = new HashMap<>();
+	private static HashMap<Integer, Integer> handleList = new HashMap<>();
 	private static int fileCounter = 1;
 	private static int blockCounter = 1;
+	private static int handleCounter = 1;
+
+	private static final int STATUS_OK = 1;
+	private static final int STATUS_NOT_OK = 0;
 
 	public static void main(String args[]){
 		init();
@@ -42,12 +47,8 @@ public class NameNode implements INameNode {
 		OpenFileRequest openFileRequest = (OpenFileRequest) Utils.deserialize(inp);
 		String fileName = openFileRequest.getFileName();
 		boolean forRead = openFileRequest.getForRead();
-
-		//System.out.println(fileName);
-		//System.out.println(forRead);
 		
 		OpenFileResponse.Builder openFileResponse = OpenFileResponse.newBuilder();
-		openFileResponse.setStatus(1);
 		
 		
 		boolean isFileExist = true;
@@ -59,8 +60,10 @@ public class NameNode implements INameNode {
 			if (isFileExist) {
 				for(int a : blockList.get((fileToInt.get(fileName))))
 					openFileResponse.addBlockNums(a);
+				openFileResponse.setStatus(STATUS_OK);
 			} else {
 				// ERROR: No such file
+				openFileResponse.setStatus(STATUS_NOT_OK);
 				System.out.println("No such file exists");
 			}
 			return Utils.serialize(openFileResponse.build());
@@ -68,22 +71,17 @@ public class NameNode implements INameNode {
 			if (isFileExist) {
 				// No updates allowed
 				System.out.println("No updated allowed");
-				/*	
-				int fileId = fileToInt.get(fileName);
-				assignBlock(fileId, blockCounter);
-				openFileResponse.addBlockNums(blockCounter);
-				blockCounter++;
-				*/
+				openFileResponse.setStatus(STATUS_NOT_OK);
 			} else {
 				System.out.println("Creating file....");	
 				fileToInt.put(fileName, fileCounter);
 				int fileId = fileCounter;
-				int handle = fileId;
+				int handle = handleCounter;
+				handleCounter++;
 				fileCounter++;
+				handleList.put(handle, fileId);
+				openFileResponse.setStatus(STATUS_OK);
 				openFileResponse.setHandle(handle);
-				/*assignBlock(fileId, blockCounter);
-				openFileResponse.addBlockNums(blockCounter);
-				blockCounter++;*/
 			}
 			return Utils.serialize(openFileResponse.build());
 		}
@@ -93,7 +91,15 @@ public class NameNode implements INameNode {
 	public byte[] closeFile(byte[] inp) throws RemoteException {
 		CloseFileRequest closeFileRequest = (CloseFileRequest) Utils.deserialize(inp);
 		int handle = closeFileRequest.getHandle();
-		return null;
+
+		CloseFileResponse.Builder closeFileResponse = CloseFileResponse.newBuilder();
+		try {
+			handleList.remove(handle);
+			closeFileResponse.setStatus(STATUS_OK);
+		} catch (Exception e) {
+			closeFileResponse.setStatus(STATUS_NOT_OK);
+		}
+		return Utils.serialize(closeFileResponse.build());
 	}
 
 	@Override
@@ -118,15 +124,23 @@ public class NameNode implements INameNode {
 	public byte[] assignBlock(byte[] inp) throws RemoteException {
 		AssignBlockRequest assignBlockRequest = (AssignBlockRequest) Utils.deserialize(inp);
 		int handle = assignBlockRequest.getHandle();
-		int fileId = handle;
+		if (handleList.get(handle) == null) {
+			AssignBlockResponse.Builder assignBlockResponse = AssignBlockResponse.newBuilder();
+			assignBlockResponse.setStatus(STATUS_NOT_OK);
+			return Utils.serialize(assignBlockResponse.build());
+		}
+
+		int fileId = handleList.get(handle);
 		int blockId = blockCounter;
+		System.out.println(fileId+" "+handle);
 		blockCounter++;
 		// insert in blockList
 		ArrayList<Integer> fileBlockList = blockList.get(fileId);
 		if (fileBlockList == null)
 			fileBlockList = new ArrayList<Integer>();
 		fileBlockList.add(blockId);
-		blockList.put(blockId, fileBlockList);
+		blockList.put(fileId, fileBlockList);
+
 
 		// insert in blockLocation
 		ArrayList<DataNodeLocation> fileBlockLocations = blockLocation.get(blockId);
@@ -144,7 +158,7 @@ public class NameNode implements INameNode {
 		blockLocations.addLocations(dataNodeLocation.build());
 
 		AssignBlockResponse.Builder assignBlockResponse = AssignBlockResponse.newBuilder();
-		assignBlockResponse.setStatus(1);
+		assignBlockResponse.setStatus(STATUS_OK);
 		assignBlockResponse.setNewBlock(blockLocations.build());
 
 		return Utils.serialize(assignBlockResponse.build());
@@ -177,13 +191,18 @@ public class NameNode implements INameNode {
 		System.out.println("------------------");
 		for (String fileName: fileToInt.keySet()) {
             int value = fileToInt.get(fileName);
-            System.out.println(fileName + " " + value);
-			System.out.println("Block list");
+            System.out.println("File: " + fileName);
+			System.out.println("Block list:");
 			
             ArrayList<Integer> blocks = blockList.get(value);
             for (Integer block : blocks)
             	System.out.println(block);
             System.out.println("---------"); 
+		}
+
+		for (Integer i : handleList.keySet()) {
+			Integer value = handleList.get(i);
+			System.out.println(i + " " + value);
 		}
 	}
 }
