@@ -180,7 +180,7 @@ public class NameNode implements INameNode {
 	}
 
 	@Override
-	public byte[] heartBeat(byte[] inp) throws RemoteException {
+	public byte[] heartBeat() throws RemoteException {
 		return null;
 	}
 
