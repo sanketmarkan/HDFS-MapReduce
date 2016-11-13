@@ -179,36 +179,6 @@ public class Client {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		/*
-		BlockLocationRequest.Builder blockLocationRequest = BlockLocationRequest.newBuilder();
-		for (Integer block : blockList) {
-			blockLocationRequest.addBlockNums(block);
-		}
-
-		byte[] bLocationResponse = nameNode.getBlockLocations(Utils.serialize(blockLocationRequest));
-		BlockLocationResponse blockLocationResponse = (BlockLocationResponse) Utils.deserialize(bLocationResponse);
-
-		int status = blockLocationResponse.getStatus();
-		if (status == 1) {
-			List<BlockLocations> blockLocationList =  blockLocationResponse.getBlockLocationsList();
-			for (BlockLocations location : blockLocationList) {
-				List<DataNodeLocation> dataNodeLocation = location.getLocationsList();
-
-				DataNode dataNode;
-				ArrayList<byte[]> dataBlocks = getDataBlocks(fileName);
-				for (byte[] dataBlock : dataBlocks) {
-					WriteBlockRequest.Builder writeBlockRequest = WriteBlockRequest.newBuilder();
-					writeBlockRequest.setBlockInfo(location);
-					writeBlockRequest.addData(dataBlock);
-
-					byte[] wResponse = dataNode.writeBlock(Utils.serialize(writeBlockRequest));
-					WriteBlockResponse writeBlockResponse = (WriteBlockResponse) Utils.deserialize(wResponse);
-				}
-			}
-		} else {
-			// error
-		}
-		*/
 	}
 
 	private static void list_files() {
@@ -218,10 +188,10 @@ public class Client {
 			byte[] lFilesResponse = nameNode.list(Utils.serialize(listFilesRequest.build()));
 
 			ListFilesResponse listFilesResponse = (ListFilesResponse) Utils.deserialize(lFilesResponse);
-			/*ArrayList<String> fileList = listFilesResponse.getFileNamesList();
+			List<String> fileList = listFilesResponse.getFileNamesList();
 			for (String file : fileList) {
 				System.out.println(file);
-			}*/
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

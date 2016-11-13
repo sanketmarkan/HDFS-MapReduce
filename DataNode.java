@@ -72,9 +72,9 @@ public class DataNode implements IDataNode {
 		File file = new File(fileName);
 		// data = request.getData();
 		WriteBlockResponse.Builder response = WriteBlockResponse.newBuilder();
-		if(file.exists()){
+		if (file.exists()) {
 			response.setStatus(0);
-		else {
+		} else {
             blockList.add(block);
 			response.setStatus(1);
 			try {
