@@ -11385,6 +11385,19 @@ public final class HDFS {
      * <code>optional int32 id = 1;</code>
      */
     int getId();
+
+    /**
+     * <code>optional .DataNodeLocation location = 2;</code>
+     */
+    boolean hasLocation();
+    /**
+     * <code>optional .DataNodeLocation location = 2;</code>
+     */
+    Protobuf.HDFS.DataNodeLocation getLocation();
+    /**
+     * <code>optional .DataNodeLocation location = 2;</code>
+     */
+    Protobuf.HDFS.DataNodeLocationOrBuilder getLocationOrBuilder();
   }
   /**
    * Protobuf type {@code HeartBeatRequest}
@@ -11434,6 +11447,19 @@ public final class HDFS {
               id_ = input.readInt32();
               break;
             }
+            case 18: {
+              Protobuf.HDFS.DataNodeLocation.Builder subBuilder = null;
+              if (((bitField0_ & 0x00000002) == 0x00000002)) {
+                subBuilder = location_.toBuilder();
+              }
+              location_ = input.readMessage(Protobuf.HDFS.DataNodeLocation.PARSER, extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom(location_);
+                location_ = subBuilder.buildPartial();
+              }
+              bitField0_ |= 0x00000002;
+              break;
+            }
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -11474,6 +11500,27 @@ public final class HDFS {
       return id_;
     }
 
+    public static final int LOCATION_FIELD_NUMBER = 2;
+    private Protobuf.HDFS.DataNodeLocation location_;
+    /**
+     * <code>optional .DataNodeLocation location = 2;</code>
+     */
+    public boolean hasLocation() {
+      return ((bitField0_ & 0x00000002) == 0x00000002);
+    }
+    /**
+     * <code>optional .DataNodeLocation location = 2;</code>
+     */
+    public Protobuf.HDFS.DataNodeLocation getLocation() {
+      return location_ == null ? Protobuf.HDFS.DataNodeLocation.getDefaultInstance() : location_;
+    }
+    /**
+     * <code>optional .DataNodeLocation location = 2;</code>
+     */
+    public Protobuf.HDFS.DataNodeLocationOrBuilder getLocationOrBuilder() {
+      return location_ == null ? Protobuf.HDFS.DataNodeLocation.getDefaultInstance() : location_;
+    }
+
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
@@ -11489,6 +11536,9 @@ public final class HDFS {
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         output.writeInt32(1, id_);
       }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        output.writeMessage(2, getLocation());
+      }
       unknownFields.writeTo(output);
     }
 
@@ -11500,6 +11550,10 @@ public final class HDFS {
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt32Size(1, id_);
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(2, getLocation());
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -11523,6 +11577,11 @@ public final class HDFS {
         result = result && (getId()
             == other.getId());
       }
+      result = result && (hasLocation() == other.hasLocation());
+      if (hasLocation()) {
+        result = result && getLocation()
+            .equals(other.getLocation());
+      }
       result = result && unknownFields.equals(other.unknownFields);
       return result;
     }
@@ -11537,6 +11596,10 @@ public final class HDFS {
       if (hasId()) {
         hash = (37 * hash) + ID_FIELD_NUMBER;
         hash = (53 * hash) + getId();
+      }
+      if (hasLocation()) {
+        hash = (37 * hash) + LOCATION_FIELD_NUMBER;
+        hash = (53 * hash) + getLocation().hashCode();
       }
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
@@ -11652,12 +11715,19 @@ public final class HDFS {
       private void maybeForceBuilderInitialization() {
         if (com.google.protobuf.GeneratedMessageV3
                 .alwaysUseFieldBuilders) {
+          getLocationFieldBuilder();
         }
       }
       public Builder clear() {
         super.clear();
         id_ = 0;
         bitField0_ = (bitField0_ & ~0x00000001);
+        if (locationBuilder_ == null) {
+          location_ = null;
+        } else {
+          locationBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x00000002);
         return this;
       }
 
@@ -11686,6 +11756,14 @@ public final class HDFS {
           to_bitField0_ |= 0x00000001;
         }
         result.id_ = id_;
+        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+          to_bitField0_ |= 0x00000002;
+        }
+        if (locationBuilder_ == null) {
+          result.location_ = location_;
+        } else {
+          result.location_ = locationBuilder_.build();
+        }
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -11730,6 +11808,9 @@ public final class HDFS {
         if (other == Protobuf.HDFS.HeartBeatRequest.getDefaultInstance()) return this;
         if (other.hasId()) {
           setId(other.getId());
+        }
+        if (other.hasLocation()) {
+          mergeLocation(other.getLocation());
         }
         this.mergeUnknownFields(other.unknownFields);
         onChanged();
@@ -11789,6 +11870,124 @@ public final class HDFS {
         id_ = 0;
         onChanged();
         return this;
+      }
+
+      private Protobuf.HDFS.DataNodeLocation location_ = null;
+      private com.google.protobuf.SingleFieldBuilderV3<
+          Protobuf.HDFS.DataNodeLocation, Protobuf.HDFS.DataNodeLocation.Builder, Protobuf.HDFS.DataNodeLocationOrBuilder> locationBuilder_;
+      /**
+       * <code>optional .DataNodeLocation location = 2;</code>
+       */
+      public boolean hasLocation() {
+        return ((bitField0_ & 0x00000002) == 0x00000002);
+      }
+      /**
+       * <code>optional .DataNodeLocation location = 2;</code>
+       */
+      public Protobuf.HDFS.DataNodeLocation getLocation() {
+        if (locationBuilder_ == null) {
+          return location_ == null ? Protobuf.HDFS.DataNodeLocation.getDefaultInstance() : location_;
+        } else {
+          return locationBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>optional .DataNodeLocation location = 2;</code>
+       */
+      public Builder setLocation(Protobuf.HDFS.DataNodeLocation value) {
+        if (locationBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          location_ = value;
+          onChanged();
+        } else {
+          locationBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000002;
+        return this;
+      }
+      /**
+       * <code>optional .DataNodeLocation location = 2;</code>
+       */
+      public Builder setLocation(
+          Protobuf.HDFS.DataNodeLocation.Builder builderForValue) {
+        if (locationBuilder_ == null) {
+          location_ = builderForValue.build();
+          onChanged();
+        } else {
+          locationBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000002;
+        return this;
+      }
+      /**
+       * <code>optional .DataNodeLocation location = 2;</code>
+       */
+      public Builder mergeLocation(Protobuf.HDFS.DataNodeLocation value) {
+        if (locationBuilder_ == null) {
+          if (((bitField0_ & 0x00000002) == 0x00000002) &&
+              location_ != null &&
+              location_ != Protobuf.HDFS.DataNodeLocation.getDefaultInstance()) {
+            location_ =
+              Protobuf.HDFS.DataNodeLocation.newBuilder(location_).mergeFrom(value).buildPartial();
+          } else {
+            location_ = value;
+          }
+          onChanged();
+        } else {
+          locationBuilder_.mergeFrom(value);
+        }
+        bitField0_ |= 0x00000002;
+        return this;
+      }
+      /**
+       * <code>optional .DataNodeLocation location = 2;</code>
+       */
+      public Builder clearLocation() {
+        if (locationBuilder_ == null) {
+          location_ = null;
+          onChanged();
+        } else {
+          locationBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x00000002);
+        return this;
+      }
+      /**
+       * <code>optional .DataNodeLocation location = 2;</code>
+       */
+      public Protobuf.HDFS.DataNodeLocation.Builder getLocationBuilder() {
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return getLocationFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>optional .DataNodeLocation location = 2;</code>
+       */
+      public Protobuf.HDFS.DataNodeLocationOrBuilder getLocationOrBuilder() {
+        if (locationBuilder_ != null) {
+          return locationBuilder_.getMessageOrBuilder();
+        } else {
+          return location_ == null ?
+              Protobuf.HDFS.DataNodeLocation.getDefaultInstance() : location_;
+        }
+      }
+      /**
+       * <code>optional .DataNodeLocation location = 2;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          Protobuf.HDFS.DataNodeLocation, Protobuf.HDFS.DataNodeLocation.Builder, Protobuf.HDFS.DataNodeLocationOrBuilder> 
+          getLocationFieldBuilder() {
+        if (locationBuilder_ == null) {
+          locationBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              Protobuf.HDFS.DataNodeLocation, Protobuf.HDFS.DataNodeLocation.Builder, Protobuf.HDFS.DataNodeLocationOrBuilder>(
+                  getLocation(),
+                  getParentForChildren(),
+                  isClean());
+          location_ = null;
+        }
+        return locationBuilder_;
       }
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
@@ -12438,9 +12637,10 @@ public final class HDFS {
       "ata\030\002 \003(\014\"[\n\022BlockReportRequest\022\n\n\002id\030\001 " +
       "\001(\005\022#\n\010location\030\002 \001(\0132\021.DataNodeLocation" +
       "\022\024\n\014blockNumbers\030\003 \003(\005\"%\n\023BlockReportRes" +
-      "ponse\022\016\n\006status\030\001 \003(\005\"\036\n\020HeartBeatReques" +
-      "t\022\n\n\002id\030\001 \001(\005\"#\n\021HeartBeatResponse\022\016\n\006st" +
-      "atus\030\001 \001(\005B\020\n\010ProtobufB\004HDFS"
+      "ponse\022\016\n\006status\030\001 \003(\005\"C\n\020HeartBeatReques" +
+      "t\022\n\n\002id\030\001 \001(\005\022#\n\010location\030\002 \001(\0132\021.DataNo" +
+      "deLocation\"#\n\021HeartBeatResponse\022\016\n\006statu" +
+      "s\030\001 \001(\005B\020\n\010ProtobufB\004HDFS"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -12567,7 +12767,7 @@ public final class HDFS {
     internal_static_HeartBeatRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_HeartBeatRequest_descriptor,
-        new java.lang.String[] { "Id", });
+        new java.lang.String[] { "Id", "Location", });
     internal_static_HeartBeatResponse_descriptor =
       getDescriptor().getMessageTypes().get(19);
     internal_static_HeartBeatResponse_fieldAccessorTable = new

@@ -1,6 +1,7 @@
 import java.rmi.RemoteException;
 import java.util.*;
 import java.io.*;
+import java.text.*;
 import java.rmi.registry.Registry;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.server.UnicastRemoteObject;
@@ -20,6 +21,7 @@ public class NameNode implements INameNode {
 	private static HashMap<Integer, ArrayList<DataNodeLocation>> blockLocation = new HashMap<>();
 	private static HashMap<Integer, Integer> handleList = new HashMap<>();
 	private static HashMap<Integer, DataNodeLocation> livingDataNodes = new HashMap<>();
+	private static HashMap<Integer, String> lastBeatNode = new HashMap<>();
 	private static int fileCounter = 1;
 	private static int blockCounter = 1;
 	private static int handleCounter = 1;
@@ -203,12 +205,21 @@ public class NameNode implements INameNode {
 	}
 
 	@Override
-	public byte[] heartBeat() throws RemoteException {
-		// TODO: IMPLEMENT THIS
+	public byte[] heartBeat(byte[] inp) throws RemoteException {
 		// REMOVE DATANODE ON BASIS OF THIS 
 		// REMOVE BLOCK LOCATIONS ON BASIS OF BLOCKREPORT
 		// CORRESPONDING TO PREVIOUS STEP ADD NEW BLOCK LOCATIONS FOR A BLOCK
-		return null;
+
+		HeartBeatRequest request = (HeartBeatRequest) Utils.deserialize(inp);
+		int id  = request.getId();
+		if (livingDataNodes.get(id) == null)
+			livingDataNodes.put(id,request.getLocation());
+		DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
+		Calendar cal = Calendar.getInstance();
+		lastBeatNode.put(id,dateFormat.format(cal.getTime()));
+		HeartBeatResponse.Builder response = HeartBeatResponse.newBuilder();
+		response.setStatus(STATUS_OK);
+		return Utils.serialize(response.build());
 	}
 
 	public void test() {

@@ -33,5 +33,5 @@ public interface INameNode extends Remote{
 	
 	/* HeartBeatResponse heartBeat(HeartBeatRequest) */
 //	/* Heartbeat messages between NameNode and DataNode */
-	byte[] heartBeat() throws RemoteException;
+	byte[] heartBeat(byte[] inp) throws RemoteException;
 }
