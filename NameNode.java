@@ -19,6 +19,7 @@ public class NameNode implements INameNode {
 	private static HashMap<String, ArrayList<String>> filesDir = new HashMap<>();
 	private static HashMap<Integer, ArrayList<DataNodeLocation>> blockLocation = new HashMap<>();
 	private static HashMap<Integer, Integer> handleList = new HashMap<>();
+	private static HashMap<Integer, DataNodeLocation> livingDataNodes = new HashMap<>();
 	private static int fileCounter = 1;
 	private static int blockCounter = 1;
 	private static int handleCounter = 1;
@@ -176,11 +177,37 @@ public class NameNode implements INameNode {
 
 	@Override
 	public byte[] blockReport(byte[] inp) throws RemoteException {
-		return null;
+		BlockReportRequest request = (BlockReportRequest) Utils.deserialize(inp);
+		int id = request.getId();
+		DataNodeLocation requestLocation = request.getLocation();
+		List<Integer> blockNumbers = request.getBlockNumbersList();
+		for (Integer block : blockNumbers){
+			boolean found = false;
+			for(DataNodeLocation location : blockLocation.get(block)){
+				if(location.getIp() == requestLocation.getIp()){
+					found = true;
+					break;
+				}
+			}
+			if(!found) {
+				ArrayList<DataNodeLocation> blockLocations = blockLocation.get(id);
+				if (blockLocations == null)
+					blockLocations = new ArrayList<DataNodeLocation>();
+				blockLocations.add(requestLocation);
+				blockLocation.put(id, blockLocations);
+			}
+		}
+		BlockReportResponse.Builder response = BlockReportResponse.newBuilder();
+		response.addStatus(STATUS_OK);
+		return Utils.serialize(response.build());
 	}
 
 	@Override
 	public byte[] heartBeat() throws RemoteException {
+		// TODO: IMPLEMENT THIS
+		// REMOVE DATANODE ON BASIS OF THIS 
+		// REMOVE BLOCK LOCATIONS ON BASIS OF BLOCKREPORT
+		// CORRESPONDING TO PREVIOUS STEP ADD NEW BLOCK LOCATIONS FOR A BLOCK
 		return null;
 	}
 

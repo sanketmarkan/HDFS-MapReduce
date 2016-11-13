@@ -16,8 +16,10 @@ import java.rmi.registry.LocateRegistry;
 public class DataNode implements IDataNode {
 
 	private static int myId;
-	public static void main(String args[]){
+    private static ArrayList<Integer> blockList;
+    public static void main(String args[]){
         myId = Integer.parseInt(args[0]);
+        blockList = new ArrayList<Integer>();
 		init();
 	}
 
@@ -72,7 +74,8 @@ public class DataNode implements IDataNode {
 		WriteBlockResponse.Builder response = WriteBlockResponse.newBuilder();
 		if(file.exists()){
 			response.setStatus(0);
-		} else {
+		else {
+            blockList.add(block);
 			response.setStatus(1);
 			try {
                 FileWriter writer = new FileWriter(file, true);
@@ -89,9 +92,25 @@ public class DataNode implements IDataNode {
 		return Utils.serialize(response.build());
 	}
 
+    public byte[] sendBlockReport() throws RemoteException {
+        BlockReportRequest.Builder request = BlockReportRequest.newBuilder();
+        request.setId(myId);
+        for(int block:blockList)
+            request.addBlockNumbers(block);
+        try{
+            Registry registry = LocateRegistry.getRegistry();
+            INameNode stub = (INameNode) registry.lookup("namenode");
+            stub.blockReport(Utils.serialize(request.build()));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
 	public void sendHeartBeat() throws RemoteException{
 		try{
-			Registry registry = LocateRegistry.getRegistry();
+			// Registry registry = LocateRegistry.getRegistry(nnIP, nnPort);
+            Registry registry = LocateRegistry.getRegistry();
 	        INameNode stub = (INameNode) registry.lookup("namenode");
 	        stub.heartBeat();
 	    } catch (Exception e) {
