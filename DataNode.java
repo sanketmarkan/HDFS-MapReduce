@@ -74,7 +74,8 @@ public class DataNode implements IDataNode {
 		WriteBlockResponse.Builder response = WriteBlockResponse.newBuilder();
 		if (file.exists()) {
 			response.setStatus(0);
-		} else {
+        }
+		else {
             blockList.add(block);
 			response.setStatus(1);
 			try {
@@ -112,7 +113,10 @@ public class DataNode implements IDataNode {
 			// Registry registry = LocateRegistry.getRegistry(nnIP, nnPort);
             Registry registry = LocateRegistry.getRegistry();
 	        INameNode stub = (INameNode) registry.lookup("namenode");
-	        stub.heartBeat();
+            HeartBeatRequest.Builder request = HeartBeatRequest.newBuilder();
+	        request.setId(myId);
+            // request.setLocation()
+            stub.heartBeat(Utils.serialize(request.build()));
 	    } catch (Exception e) {
             e.printStackTrace();
         }

@@ -89,6 +89,7 @@ message BlockReportResponse {
 
 message HeartBeatRequest {
   optional int32 id = 1;
+  optional DataNodeLocation location = 2;
 }
 
 message HeartBeatResponse {
