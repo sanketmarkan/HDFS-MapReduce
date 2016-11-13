@@ -1,3 +1,6 @@
+option java_package = 'MapReduceProto';
+option java_outer_classname = "MapReduce";
+
 message JobSubmitRequest {
   optional string mapName = 1; // Java class, or name of C .so
   optional string reducerName = 2; // Java class, or name of C .so
