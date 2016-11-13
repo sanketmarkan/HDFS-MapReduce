@@ -116,8 +116,8 @@ public class NameNode implements INameNode {
 				blockLocations.addLocations(location);
 			blockLocationResponse.addBlockLocations(blockLocations);
 		}
-		blockLocationResponse.setStatus(1);
-		return Utils.serialize(blockLocationResponse);
+		blockLocationResponse.setStatus(STATUS_OK);
+		return Utils.serialize(blockLocationResponse.build());
 	}
 
 	@Override

@@ -3,6 +3,11 @@ import java.util.*;
 
 import Protobuf.HDFS.*;
 import Utils.*;
+import IDataNode.*;
+
+import com.google.protobuf.ByteString;
+import java.rmi.registry.Registry;
+import java.rmi.registry.LocateRegistry;
 
 public class Client {
 	// Get NameNode from rmiregistry, not with preceding line
@@ -58,9 +63,39 @@ public class Client {
 			byte[] oFileRespose = nameNode.openFile(Utils.serialize(openFileRequest.build()));
 			OpenFileResponse openFileResponse = (OpenFileResponse) Utils.deserialize(oFileRespose);
 			List<Integer> blockList = openFileResponse.getBlockNumsList();
+			BlockLocationRequest.Builder blockLocationRequest = BlockLocationRequest.newBuilder();
 			for (Integer block : blockList) {
+				blockLocationRequest.addBlockNums(block);
 				System.out.println(block);
 			}
+			byte[] bLocationResponse = nameNode.getBlockLocations(Utils.serialize(blockLocationRequest.build()));
+			BlockLocationResponse blockLocationResponse = (BlockLocationResponse) Utils.deserialize(bLocationResponse);
+			
+			int locationStatus = blockLocationResponse.getStatus();
+			System.out.println("block location status: " + locationStatus);
+
+			List<BlockLocations> blockLocations = blockLocationResponse.getBlockLocationsList(); 
+			for (BlockLocations location : blockLocations) {
+				DataNodeLocation dataNodeLocation = location.getLocations(0);
+				String dnIP = dataNodeLocation.getIp();
+				int dnPort = dataNodeLocation.getPort();
+				int blockNumber = location.getBlockNumber();
+
+				Registry registry = LocateRegistry.getRegistry();
+	        	IDataNode dataNode = (IDataNode) registry.lookup("datanode");
+
+	        	ReadBlockRequest.Builder readBlockRequest = ReadBlockRequest.newBuilder();
+	        	readBlockRequest.setBlockNumber(blockNumber);
+
+	        	byte[] rBlockResponse = dataNode.readBlock(Utils.serialize(readBlockRequest.build()));
+				ReadBlockResponse readBlockResponse = (ReadBlockResponse) Utils.deserialize(rBlockResponse);
+				int readBlockStatus = readBlockResponse.getStatus();
+				List<ByteString> data = readBlockResponse.getDataList();
+				for (ByteString str : data) {
+					System.out.println(str.toStringUtf8());
+				}
+			}
+
 			int status = openFileResponse.getStatus();
 			int handle = openFileResponse.getHandle();
 		} catch (Exception e) {
@@ -87,6 +122,7 @@ public class Client {
 			System.out.println("file handle: " + fileHandle);
 			//nameNode.test();
 			for (int i=0; i<3; i++) {
+				String data = "This is file content";
 				AssignBlockRequest.Builder assignBlockRequest = AssignBlockRequest.newBuilder();
 				assignBlockRequest.setHandle(fileHandle);
 
@@ -95,7 +131,33 @@ public class Client {
 
 				int assignBlockStatus = assignBlockResponse.getStatus();
 				BlockLocations blockLocations = assignBlockResponse.getNewBlock();
+
 				System.out.println("block assign status: " + assignBlockStatus);
+
+				DataNodeLocation dataNodeLocation = blockLocations.getLocations(0);
+				String dnIP = dataNodeLocation.getIp();
+				int dnPort = dataNodeLocation.getPort();
+
+				int blockNumber = blockLocations.getBlockNumber();
+
+				System.out.println("blockNumber: " + blockNumber);
+
+				Registry registry = LocateRegistry.getRegistry();
+	        	IDataNode dataNode = (IDataNode) registry.lookup("datanode");
+
+				//IDataNode dataNode = (IDataNode) LocateRegistry.getRegistry(dnIP, dnPort).lookup("datanode");
+				
+				WriteBlockRequest.Builder writeBlockRequest = WriteBlockRequest.newBuilder();
+				writeBlockRequest.setBlockNumber(blockNumber);
+				writeBlockRequest.addData(ByteString.copyFromUtf8(data));
+
+				System.out.println("blockNumber: " + blockNumber);
+
+				byte[] wBlockResponse = dataNode.writeBlock(Utils.serialize(writeBlockRequest.build()));
+				WriteBlockResponse writeBlockResponse = (WriteBlockResponse) Utils.deserialize(wBlockResponse);
+				int writeBlockStatus = writeBlockResponse.getStatus();
+
+				System.out.println("block write status: " + writeBlockStatus);
 			}
 
 		} catch (Exception e) {
@@ -150,7 +212,19 @@ public class Client {
 	}
 
 	private static void list_files() {
+		try {
+			ListFilesRequest.Builder listFilesRequest = ListFilesRequest.newBuilder();
+			listFilesRequest.setDirName(".");
+			byte[] lFilesResponse = nameNode.list(Utils.serialize(listFilesRequest.build()));
 
+			ListFilesResponse listFilesResponse = (ListFilesResponse) Utils.deserialize(lFilesResponse);
+			/*ArrayList<String> fileList = listFilesResponse.getFileNamesList();
+			for (String file : fileList) {
+				System.out.println(file);
+			}*/
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	private static void debug() {

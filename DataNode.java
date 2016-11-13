@@ -8,6 +8,8 @@ import java.io.*;
 import java.util.*;
 import INameNode.*;
 import Protobuf.HDFS.*;
+import com.google.protobuf.ByteString;
+
 import java.rmi.registry.Registry;
 import java.rmi.registry.LocateRegistry;
 
@@ -21,10 +23,10 @@ public class DataNode implements IDataNode {
 
     public static void init() {
     	try {
-            NameNode obj = new NameNode();
-            INameNode stub = (INameNode) UnicastRemoteObject.exportObject(obj, 0);
+            DataNode obj = new DataNode();
+            IDataNode stub = (IDataNode) UnicastRemoteObject.exportObject(obj, 0);
             Registry registry = LocateRegistry.getRegistry();
-            registry.bind("datanode-"+myId, stub);
+            registry.bind("datanode", stub);
             System.out.println("DataNode " + myId +" ready");
         } catch (Exception e) {
             e.printStackTrace();
@@ -44,12 +46,7 @@ public class DataNode implements IDataNode {
                 BufferedReader br = new BufferedReader(new FileReader(file));
                 String currLine;
                 while ((currLine = br.readLine()) != null) {
-                	// response.addData(copyFrom(Utils.serialize(currLine)));
-                	//
-                	//
-                	// FIGURE OUT A WAY TO COPY TO BYTESTRING.
-                	//
-                	//
+                	response.addData(ByteString.copyFromUtf8(currLine));
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -65,16 +62,29 @@ public class DataNode implements IDataNode {
 	public byte[] writeBlock(byte[] inp) throws RemoteException {
 		WriteBlockRequest request = (WriteBlockRequest) Utils.deserialize(inp);
 		int block = request.getBlockNumber();
+		String data = request.getData(0).toStringUtf8();
+		
+		//System.out.println(data);
+
 		String fileName = "block-"+block;
 		File file = new File(fileName);
 		// data = request.getData();
 		WriteBlockResponse.Builder response = WriteBlockResponse.newBuilder();
 		if(file.exists()){
 			response.setStatus(0);
-		}
-		else {
+		} else {
 			response.setStatus(1);
-			// WRITE TO FILE BRO
+			try {
+                FileWriter writer = new FileWriter(file, true);
+                writer.write(data);
+                writer.flush();
+                writer.close();
+                System.out.println("Wrote to file");
+            } catch (Exception e) {
+                e.printStackTrace();
+                response.setStatus(0);
+            }
+
 		}
 		return Utils.serialize(response.build());
 	}
