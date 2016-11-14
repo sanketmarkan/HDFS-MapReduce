@@ -6,6 +6,7 @@ import IDataNode.*;
 import Utils.*;
 import java.io.*;
 import java.util.*;
+import java.net.*;
 import INameNode.*;
 import Protobuf.HDFS.*;
 import com.google.protobuf.ByteString;
@@ -21,6 +22,23 @@ public class DataNode implements IDataNode {
         myId = Integer.parseInt(args[0]);
         blockList = new ArrayList<Integer>();
 		init();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (true) {
+                    try{
+                        sendHeartBeat();
+                        try {
+                            Thread.sleep(1000);
+                        } catch (InterruptedException e) {
+                            // nope
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }).start();
 	}
 
     public static void init() {
@@ -108,14 +126,34 @@ public class DataNode implements IDataNode {
         return null;
     }
 
-	public void sendHeartBeat() throws RemoteException{
+	public static void sendHeartBeat() throws RemoteException{
 		try{
 			// Registry registry = LocateRegistry.getRegistry(nnIP, nnPort);
             Registry registry = LocateRegistry.getRegistry();
 	        INameNode stub = (INameNode) registry.lookup("namenode");
             HeartBeatRequest.Builder request = HeartBeatRequest.newBuilder();
 	        request.setId(myId);
-            // request.setLocation()
+            String networkInterfaceName = "wlp6s0";
+            Inet4Address inetAddress = null;
+            try {
+                Enumeration<InetAddress> enumeration = NetworkInterface.getByName(networkInterfaceName).getInetAddresses();
+                while (enumeration.hasMoreElements()) {
+                    InetAddress tempInetAddress = enumeration.nextElement();
+                    if (tempInetAddress instanceof Inet4Address) {
+                        inetAddress = (Inet4Address) tempInetAddress;
+                    }
+                }
+            } catch (SocketException e) {
+                e.printStackTrace();
+            }
+            if (inetAddress == null) {
+                System.err.println("Error Obtaining Network Information");
+                System.exit(-1);
+            }
+            DataNodeLocation.Builder dNbuilder = DataNodeLocation.newBuilder();
+            dNbuilder.setIp(inetAddress.getHostAddress());
+            dNbuilder.setPort(Registry.REGISTRY_PORT);
+            request.setLocation(dNbuilder.build());
             stub.heartBeat(Utils.serialize(request.build()));
 	    } catch (Exception e) {
             e.printStackTrace();

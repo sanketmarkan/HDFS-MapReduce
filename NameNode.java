@@ -139,28 +139,30 @@ public class NameNode implements INameNode {
 		if (fileBlockList == null)
 			fileBlockList = new ArrayList<Integer>();
 		fileBlockList.add(blockId);
-		blockList.put(fileId, fileBlockList);
-
-
-		// insert in blockLocation
-		ArrayList<DataNodeLocation> fileBlockLocations = blockLocation.get(blockId);
-		DataNodeLocation.Builder dataNodeLocation = DataNodeLocation.newBuilder();
-		dataNodeLocation.setIp("10.1.1.1");
-		dataNodeLocation.setPort(80);
-		if (fileBlockLocations == null)
-			fileBlockLocations = new ArrayList<DataNodeLocation>();
-		fileBlockLocations.add(dataNodeLocation.build());
-		blockLocation.put(blockId, fileBlockLocations);
-
-		// Building block location 
+		blockList.put(fileId, fileBlockList); 
 		BlockLocations.Builder blockLocations = BlockLocations.newBuilder();
 		blockLocations.setBlockNumber(blockId);
-		blockLocations.addLocations(dataNodeLocation.build());
 
 		AssignBlockResponse.Builder assignBlockResponse = AssignBlockResponse.newBuilder();
+		if(livingDataNodes.size() == 0) {
+			assignBlockResponse.setStatus(STATUS_NOT_OK);
+			return Utils.serialize(assignBlockResponse.build());
+		}
+		System.out.println(livingDataNodes.size());
+		for (int num = 0 ; num<Math.min(3, (int)livingDataNodes.size());num++){
+			Random rn = new Random();
+			int index = rn.nextInt() % (livingDataNodes.size());
+			int id = (int)livingDataNodes.keySet().toArray()[index];
+			DataNodeLocation location = livingDataNodes.get(id);
+			ArrayList<DataNodeLocation> fileBlockLocations = blockLocation.get(blockId);
+			if (fileBlockLocations == null)
+				fileBlockLocations = new ArrayList<DataNodeLocation>();
+			fileBlockLocations.add(location);
+			blockLocation.put(blockId, fileBlockLocations);
+			blockLocations.addLocations(location);
+		}
 		assignBlockResponse.setStatus(STATUS_OK);
 		assignBlockResponse.setNewBlock(blockLocations.build());
-
 		return Utils.serialize(assignBlockResponse.build());
 	}
 
@@ -211,6 +213,7 @@ public class NameNode implements INameNode {
 		int id  = request.getId();
 		if (livingDataNodes.get(id) == null)
 			livingDataNodes.put(id,request.getLocation());
+		System.out.println(livingDataNodes.get(id).getIp());
 		DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
 		Calendar cal = Calendar.getInstance();
 		lastBeatNode.put(id,dateFormat.format(cal.getTime()));
