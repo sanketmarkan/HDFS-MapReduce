@@ -213,6 +213,7 @@ public class NameNode implements INameNode {
 		int id  = request.getId();
 		if (livingDataNodes.get(id) == null)
 			livingDataNodes.put(id,request.getLocation());
+		System.out.println(livingDataNodes.get(id).getIp());
 		DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
 		Calendar cal = Calendar.getInstance();
 		lastBeatNode.put(id,dateFormat.format(cal.getTime()));
