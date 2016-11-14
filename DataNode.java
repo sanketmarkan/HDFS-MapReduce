@@ -39,6 +39,23 @@ public class DataNode implements IDataNode {
                 }
             }
         }).start();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (true) {
+                    try{
+                        sendBlockReport();
+                        try {
+                            Thread.sleep(1000);
+                        } catch (InterruptedException e) {
+                            // nope
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }).start();
 	}
 
     public static void init() {
@@ -111,7 +128,7 @@ public class DataNode implements IDataNode {
 		return Utils.serialize(response.build());
 	}
 
-    public byte[] sendBlockReport() throws RemoteException {
+    public static byte[] sendBlockReport() throws RemoteException {
         BlockReportRequest.Builder request = BlockReportRequest.newBuilder();
         request.setId(myId);
         for(int block:blockList)

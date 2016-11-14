@@ -84,27 +84,31 @@ public class Client {
 
 			List<BlockLocations> blockLocations = blockLocationResponse.getBlockLocationsList(); 
 			for (BlockLocations location : blockLocations) {
-				DataNodeLocation dataNodeLocation = location.getLocations(0);
-				String dnIP = dataNodeLocation.getIp();
-				int dnPort = dataNodeLocation.getPort();
-				int blockNumber = location.getBlockNumber();
+				List<DataNodeLocation> dataNodeLocationList = location.getLocationsList();
+				for(DataNodeLocation dataNodeLocation : dataNodeLocationList) {
+					String dnIP = dataNodeLocation.getIp();
+					int dnPort = dataNodeLocation.getPort();
+					int blockNumber = location.getBlockNumber();
 
-				Registry registry = LocateRegistry.getRegistry();
-	        	IDataNode dataNode = (IDataNode) registry.lookup("datanode");
+					Registry registry = LocateRegistry.getRegistry();
+		        	IDataNode dataNode = (IDataNode) registry.lookup("datanode");
 
-	        	ReadBlockRequest.Builder readBlockRequest = ReadBlockRequest.newBuilder();
-	        	readBlockRequest.setBlockNumber(blockNumber);
+		        	ReadBlockRequest.Builder readBlockRequest = ReadBlockRequest.newBuilder();
+		        	readBlockRequest.setBlockNumber(blockNumber);
 
-	        	byte[] rBlockResponse = dataNode.readBlock(Utils.serialize(readBlockRequest.build()));
-				ReadBlockResponse readBlockResponse = (ReadBlockResponse) Utils.deserialize(rBlockResponse);
-				int readBlockStatus = readBlockResponse.getStatus();
-				List<ByteString> data = readBlockResponse.getDataList();
-				for (ByteString str : data) {
-					fileContent += str.toStringUtf8();
-					System.out.println(str.toStringUtf8());
+		        	byte[] rBlockResponse = dataNode.readBlock(Utils.serialize(readBlockRequest.build()));
+					ReadBlockResponse readBlockResponse = (ReadBlockResponse) Utils.deserialize(rBlockResponse);
+					int readBlockStatus = readBlockResponse.getStatus();
+					if(readBlockStatus == 1) {
+						List<ByteString> data = readBlockResponse.getDataList();
+						for (ByteString str : data) {
+							fileContent += str.toStringUtf8();
+							System.out.println(str.toStringUtf8());
+						}
+						break;
+					}
 				}
 			}
-
 			int status = openFileResponse.getStatus();
 			int handle = openFileResponse.getHandle();
 		} catch (Exception e) {
@@ -123,7 +127,7 @@ public class Client {
 		openFileRequest.setForRead(false);
 		//////////////////////////////////////////////
 		//											//
-		// TODO										//	
+		// TODO										//
 		// 			break data into 64MB chunks.	//
 		// TODO										//
 		//											//
@@ -207,6 +211,6 @@ public class Client {
 	}
 
 	private static void debug() {
-		///nameNode.test();
+		//nameNode.test();
 	}
 }
