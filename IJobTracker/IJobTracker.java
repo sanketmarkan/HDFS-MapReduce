@@ -1,5 +1,8 @@
 package IJobTracker;
-public interface IJobTracker {
+import java.rmi.Remote;
+import java.rmi.RemoteException;
+
+public interface IJobTracker extends Remote {
 	
 	/* JobSubmitResponse jobSubmit(JobSubmitRequest) */
 	byte[] jobSubmit(byte[] inp);

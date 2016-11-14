@@ -1,18 +1,34 @@
 import java.rmi.RemoteException;
-import IJobTracker.*;
+import java.rmi.registry.Registry;
+import java.rmi.registry.LocateRegistry;
 import java.rmi.server.UnicastRemoteObject;
 
+import java.util.*;
+import java.io.*;
+
+import IJobTracker.*;
+import INameNode.*;
+
 import Utils.*;
+
+import Protobuf.HDFS.OpenFileRequest;
+import Protobuf.HDFS.OpenFileResponse;
+import Protobuf.HDFS.BlockLocationRequest;
+import Protobuf.HDFS.BlockLocationResponse;
+
 import MapReduceProto.MapReduce.*;
 
 public class JobTracker implements IJobTracker {
 	private static int jobCounter = 1;
 	private static int taskCounter = 1;
 
-	PriorityQueue<JobSubmitRequest> jobQueue = new PriorityQueue<JobSubmitRequest>();
-	private static HashMap<int, status> jobStatusList = new HashMap<>();
-	private static HashMap<int, ArrayList<int>> mapJobStatusList = new HashMap<>(); // map to task
-	private static HashMap<int, status> taskStatusList = new HashMap<>(); // task status
+	PriorityQueue<Integer> jobQueue = new PriorityQueue<Integer>();
+	private static HashMap<Integer, JobSubmitRequest> jobList = new HashMap<>();
+	private static HashMap<Integer, Integer> jobStatusList = new HashMap<>();
+
+	private static HashMap<Integer, ArrayList<Integer>> jobToTasks = new HashMap<>();	
+	private static HashMap<Integer, ArrayList<Integer>> mapJobStatusList = new HashMap<>(); // map to task
+	private static HashMap<Integer, Integer> taskStatusList = new HashMap<>(); // task status
 
 	private static final int JOB_FINISH = 2;
 	private static final int JOB_STARTED = 1;
@@ -21,12 +37,28 @@ public class JobTracker implements IJobTracker {
 	private static final int STATUS_OK = 1;
 	private static final int STATUS_NOT_OK = 0;
 
+	private static INameNode nameNode;
+
+	public static void main(String args[]) {
+		try {
+            JobTracker obj = new JobTracker();
+            IJobTracker stub = (IJobTracker) UnicastRemoteObject.exportObject(obj, 0);
+            Registry registry = LocateRegistry.getRegistry();
+            registry.bind("jobtraker", stub);
+            System.out.println("JobTracker ready");
+
+	        nameNode = (INameNode) registry.lookup("namenode");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+	}
+
 	public byte[] jobSubmit(byte[] inp) {
 		JobSubmitRequest jobSubmitRequest = (JobSubmitRequest) Utils.deserialize(inp);
 		int jobId = jobCounter;
 		jobCounter++;
 
-		jobQueue.insert(jobSubmitRequest);
+		jobQueue.add(jobId);
 		
 		JobSubmitResponse.Builder jobSubmitResponse = JobSubmitResponse.newBuilder();
 		jobSubmitResponse.setStatus(STATUS_OK);
@@ -37,7 +69,20 @@ public class JobTracker implements IJobTracker {
 	}
 
 	public byte[] getJobStatus(byte[] inp) {
-		return null;
+		JobStatusRequest jobStatusRequest = (JobStatusRequest) Utils.deserialize(inp);
+		int jobId = jobStatusRequest.getJobId();
+
+		JobStatusResponse.Builder jobStatusResponse = JobStatusResponse.newBuilder();
+		if (jobId < jobCounter) {
+			jobStatusResponse.setStatus(STATUS_OK);
+			jobStatusResponse.setJobDone(jobStatusList.get(jobId) == JOB_FINISH);
+			jobStatusResponse.setTotalMapTasks(0);
+			jobStatusResponse.setNumMapTasksStarted(0);
+			jobStatusResponse.setTotalReduceTasks(0);
+			jobStatusResponse.setNumReduceTasksStarted(0);			
+		} else
+			jobStatusResponse.setStatus(STATUS_NOT_OK);
+		return Utils.serialize(jobStatusResponse.build());
 	}
 	
 	public byte[] heartBeat(byte[] inp) {
@@ -51,7 +96,7 @@ public class JobTracker implements IJobTracker {
 			MapTaskInfo mapTaskInfo = assignJobToMaps(location);
 			heartBeatResponse.addMapTasks(mapTaskInfo);
 			heartBeatResponse.setStatus(STATUS_OK);
-			return heartBeatResponse.build();
+			return Utils.serialize(heartBeatResponse.build());
 		}
 		return null;
 	}
@@ -61,16 +106,17 @@ public class JobTracker implements IJobTracker {
 		String mapName, reducerName, inputFile, outputFile;
 		int numReduceTasks;
 		if (jobQueue.size() != 0) {
-			jobSubmitRequest = queue.remove();
+			int jobId = jobQueue.remove();
+			jobSubmitRequest = jobList.get(jobId);
 			
 			mapName = jobSubmitRequest.getMapName();
 			reducerName = jobSubmitRequest.getReducerName();
 			inputFile = jobSubmitRequest.getInputFile();
-			outputFiel = jobSubmitRequest.getOutputFile();
+			outputFile = jobSubmitRequest.getOutputFile();
 			numReduceTasks = jobSubmitRequest.getNumReduceTasks();
 
 			OpenFileRequest.Builder openFileRequest = OpenFileRequest.newBuilder();
-			openFileRequest.setFileName(fileName);
+			openFileRequest.setFileName(inputFile);
 			openFileRequest.setForRead(true);
 
 			try {
@@ -90,20 +136,25 @@ public class JobTracker implements IJobTracker {
 
 				MapTaskInfo.Builder mapTaskInfo = MapTaskInfo.newBuilder();
 				mapTaskInfo.setMapName(mapName);
-				List<BlockLocations> blockLocations = blockLocationResponse.getBlockLocationsList(); 
-				for (BlockLocations location : blockLocations) {
-					mapTaskInfo.addInputBlocks(location);
+				
+				List<Protobuf.HDFS.BlockLocations> blockLocations = blockLocationResponse.getBlockLocationsList(); 
+				for (Protobuf.HDFS.BlockLocations blockLocation : blockLocations) {
+					BlockLocations.Builder blockLoc = BlockLocations.newBuilder();
+					blockLoc.setBlockNumber(blockLocation.getBlockNumber());
+					blockLoc.setLocations(blockLocation.getLocationsList());
+					mapTaskInfo.addInputBlocks(blockLoc.build());
 				}
-				/*
-				String dnIP = location.getIp();
-				int dnPort = location.getPort();
-
-				Registry registry = LocateRegistry.getRegistry();
-	        	IDataNode taskTracker = (IDataNode) registry.lookup("taskTracker");
-				*/
-				taskStatusList.put(taskCounter, JOB_WAIT);
+				
+				int taskId = taskCounter; 
+				taskStatusList.put(taskId, JOB_WAIT);
 				taskCounter++;
-				return MapTaskInfo.build();
+				ArrayList<Integer> tasks = jobToTasks.get(jobId);
+				if (tasks == null)
+					tasks = new ArrayList<Integer>();
+				tasks.add(taskId);
+				jobToTasks.put(jobId, tasks);
+
+				return mapTaskInfo.build();
 
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -111,4 +162,6 @@ public class JobTracker implements IJobTracker {
         }
         return null;
 	}
+
+
 } 

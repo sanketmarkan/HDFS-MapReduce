@@ -200,9 +200,4 @@ public class Client {
 	private static void debug() {
 		nameNode.test();
 	}
-
-	public static ArrayList<byte[]> getDataBlocks(String fileName) {
-		String content = "This is content";
-		return null;
-	}
 }
