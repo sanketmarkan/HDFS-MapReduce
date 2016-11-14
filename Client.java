@@ -4,6 +4,7 @@ import java.util.*;
 import Protobuf.HDFS.*;
 import Utils.*;
 import IDataNode.*;
+import INameNode.*;
 
 import com.google.protobuf.ByteString;
 import java.rmi.registry.Registry;
@@ -11,8 +12,7 @@ import java.rmi.registry.LocateRegistry;
 
 public class Client {
 	// Get NameNode from rmiregistry, not with preceding line
-	private static NameNode nameNode = new NameNode();
-
+	private static INameNode nameNode;
 	public static void main(String args[]) {
 		/*
 		if (args[0].equals("get")) {
@@ -24,6 +24,13 @@ public class Client {
 		} else if (args[0].equals("debug")) {
 			debug();
 		}*/
+		try {
+			Registry registry = LocateRegistry.getRegistry();
+			nameNode = (INameNode) registry.lookup("namenode");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+			
 		Scanner in = new Scanner(System.in);
 		String line = "";
 		String command = "";
@@ -197,6 +204,6 @@ public class Client {
 	}
 
 	private static void debug() {
-		nameNode.test();
+		///nameNode.test();
 	}
 }

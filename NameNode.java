@@ -144,11 +144,12 @@ public class NameNode implements INameNode {
 		blockLocations.setBlockNumber(blockId);
 
 		AssignBlockResponse.Builder assignBlockResponse = AssignBlockResponse.newBuilder();
+		
+		System.out.println(livingDataNodes.size());
 		if(livingDataNodes.size() == 0) {
-			assignBlockResponse.setStatus(STATUS_NOT_OK);
+			assignBlockResponse.setStatus(2);
 			return Utils.serialize(assignBlockResponse.build());
 		}
-		System.out.println(livingDataNodes.size());
 		for (int num = 0 ; num<Math.min(3, (int)livingDataNodes.size());num++){
 			Random rn = new Random();
 			int index = rn.nextInt() % (livingDataNodes.size());
