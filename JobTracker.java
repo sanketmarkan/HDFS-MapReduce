@@ -44,7 +44,7 @@ public class JobTracker implements IJobTracker {
             JobTracker obj = new JobTracker();
             IJobTracker stub = (IJobTracker) UnicastRemoteObject.exportObject(obj, 0);
             Registry registry = LocateRegistry.getRegistry();
-            registry.bind("jobtraker", stub);
+            registry.bind("jobtracker", stub);
             System.out.println("JobTracker ready");
 
 	        nameNode = (INameNode) registry.lookup("namenode");
@@ -72,6 +72,7 @@ public class JobTracker implements IJobTracker {
 		JobStatusRequest jobStatusRequest = (JobStatusRequest) Utils.deserialize(inp);
 		int jobId = jobStatusRequest.getJobId();
 
+		System.out.println("Job Status Query: " + jobId);
 		JobStatusResponse.Builder jobStatusResponse = JobStatusResponse.newBuilder();
 		if (jobId < jobCounter) {
 			jobStatusResponse.setStatus(STATUS_OK);
@@ -136,13 +137,10 @@ public class JobTracker implements IJobTracker {
 
 				MapTaskInfo.Builder mapTaskInfo = MapTaskInfo.newBuilder();
 				mapTaskInfo.setMapName(mapName);
-				
+
 				List<Protobuf.HDFS.BlockLocations> blockLocations = blockLocationResponse.getBlockLocationsList(); 
 				for (Protobuf.HDFS.BlockLocations blockLocation : blockLocations) {
-					BlockLocations.Builder blockLoc = BlockLocations.newBuilder();
-					blockLoc.setBlockNumber(blockLocation.getBlockNumber());
-					blockLoc.setLocations(blockLocation.getLocationsList());
-					mapTaskInfo.addInputBlocks(blockLoc.build());
+					mapTaskInfo.addInputBlocks(adapter(blockLocation));
 				}
 				
 				int taskId = taskCounter; 
@@ -163,5 +161,18 @@ public class JobTracker implements IJobTracker {
         return null;
 	}
 
+	private BlockLocations adapter(Protobuf.HDFS.BlockLocations location) {
+		BlockLocations.Builder blockLoc = BlockLocations.newBuilder();
+		blockLoc.setBlockNumber(location.getBlockNumber());
 
+		List<Protobuf.HDFS.DataNodeLocation> dataNodeLocations = location.getLocationsList();
+		for (Protobuf.HDFS.DataNodeLocation dataNodeLocation : dataNodeLocations) { 
+			DataNodeLocation.Builder dnLocation = DataNodeLocation.newBuilder();
+			dnLocation.setIp(dataNodeLocation.getIp());
+			dnLocation.setPort(dataNodeLocation.getPort());
+			blockLoc.addLocations(dnLocation.build());
+		}
+
+		return blockLoc.build();
+	}
 } 

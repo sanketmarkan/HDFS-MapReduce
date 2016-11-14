@@ -23,13 +23,14 @@ public class JobClient {
 			request.setNumReduceTasks(Integer.parseInt(args[4]));
 
 	        Registry registry = LocateRegistry.getRegistry();
-	        IJobTracker stub = (IJobTracker) registry.lookup("jobTracker");
+	        IJobTracker stub = (IJobTracker) registry.lookup("jobtracker");
 	        
-	        byte[] responseByte = stub.jobSubmit(Utils.serialize(request));
+	        byte[] responseByte = stub.jobSubmit(Utils.serialize(request.build()));
 	        JobSubmitResponse response = (JobSubmitResponse) Utils.deserialize(responseByte);
 
 	        if (response.getStatus() == 1){
 	        	int jobId = response.getJobId();
+	        	System.out.println(jobId);
 	        	trackJob(jobId);
 	        } else {
 	        	System.out.println("TRY AGAIN!! SOME ERROR OCCURED!");
@@ -45,9 +46,9 @@ public class JobClient {
 			request.setJobId(jobId);
 
 	        Registry registry = LocateRegistry.getRegistry();
-	        IJobTracker stub = (IJobTracker) registry.lookup("jobTracker");
+	        IJobTracker stub = (IJobTracker) registry.lookup("jobtracker");
 	        while(true) {
-		        byte[] responseByte = stub.getJobStatus(Utils.serialize(request));
+		        byte[] responseByte = stub.getJobStatus(Utils.serialize(request.build()));
 		        JobStatusResponse response = (JobStatusResponse) Utils.deserialize(responseByte);
 
 		        if (response.getStatus() == 1){
