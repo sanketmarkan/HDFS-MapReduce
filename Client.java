@@ -11,24 +11,24 @@ import java.rmi.registry.Registry;
 import java.rmi.registry.LocateRegistry;
 
 public class Client {
-	// Get NameNode from rmiregistry, not with preceding line
 	private static INameNode nameNode;
-	public static void main(String args[]) {
-		/*
-		if (args[0].equals("get")) {
-			get_file(args[1]);
-		} else if (args[0].equals("put")) {
-			put_file(args[1]);
-		} else if (args[0].equals("list")) {
-			
-		} else if (args[0].equals("debug")) {
-			debug();
-		}*/
+	public Client() {
 		try {
 			Registry registry = LocateRegistry.getRegistry();
 			nameNode = (INameNode) registry.lookup("namenode");
 		} catch (Exception e) {
 			e.printStackTrace();
+		}
+	}
+
+	public static void main(String args[]) {
+		if (nameNode == null) {
+			try {
+				Registry registry = LocateRegistry.getRegistry();
+				nameNode = (INameNode) registry.lookup("namenode");
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 			
 		Scanner in = new Scanner(System.in);

@@ -177,7 +177,12 @@ public class JobTracker implements IJobTracker {
 
 			if(blockLocations.size()>0){
 				mapTaskInfo.addInputBlocks(adapter(blockLocations.get(0)));
-				blockLocations.remove(blockLocations.get(0));
+				// blockLocations.remove(0);
+				List<Protobuf.HDFS.BlockLocations> newList = new ArrayList<Protobuf.HDFS.BlockLocations>();
+				for(int i=1;i<blockLocations.size();i++){
+					newList.add(blockLocations.get(i));
+				}
+				blockLocations = newList;
 				jobBlockList.put(jobId, blockLocations);
 				if(blockLocations.size()>0){
 					jobQueue.add(jobId);
@@ -262,19 +267,23 @@ public class JobTracker implements IJobTracker {
 		for (Integer jobId : jobStatusList.keySet()) {
 			ArrayList<Integer> mapTasks = jobToTasks.get(jobId);
 			boolean jobMapDone = true;
-			for (Integer task : mapTasks) {
-				if (taskStatusList.get(task) != JOB_FINISH) {
-					jobMapDone = false;
-					break;
+			if (mapTasks != null) {
+				for (Integer task : mapTasks) {
+					if (taskStatusList.get(task) != JOB_FINISH) {
+						jobMapDone = false;
+						break;
+					}
 				}
 			}
 
 			ArrayList<Integer> reduceTasks = jobToReduceTask.get(jobId);
 			boolean jobReduceDone = true;
-			for (Integer task : reduceTasks) {
-				if (reduceTaskStatusList.get(task) != JOB_FINISH) {
-					jobReduceDone = false;
-					break;
+			if (reduceTasks != null) {
+				for (Integer task : reduceTasks) {
+					if (reduceTaskStatusList.get(task) != JOB_FINISH) {
+						jobReduceDone = false;
+						break;
+					}
 				}
 			}
 			if (jobMapDone && jobReduceDone)
