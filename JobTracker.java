@@ -25,6 +25,7 @@ public class JobTracker implements IJobTracker {
 	PriorityQueue<Integer> jobQueue = new PriorityQueue<Integer>();
 	private static HashMap<Integer, JobSubmitRequest> jobList = new HashMap<>();
 	private static HashMap<Integer, Integer> jobStatusList = new HashMap<>();
+	private static HashMap<Integer, List<Protobuf.HDFS.BlockLocations>> jobBlockList = new HashMap<>();
 
 	// Map task of a Job
 	private static HashMap<Integer, ArrayList<Integer>> jobToTasks = new HashMap<>();	
@@ -63,14 +64,36 @@ public class JobTracker implements IJobTracker {
 		int jobId = jobCounter;
 		jobCounter++;
 
-		jobQueue.add(jobId);
-		jobList.put(jobId, jobSubmitRequest);
-		
+		String inputFile;
+		inputFile = jobSubmitRequest.getInputFile();
+		OpenFileRequest.Builder openFileRequest = OpenFileRequest.newBuilder();
+		openFileRequest.setFileName(inputFile);
+		openFileRequest.setForRead(true);
 		JobSubmitResponse.Builder jobSubmitResponse = JobSubmitResponse.newBuilder();
 		jobSubmitResponse.setStatus(STATUS_OK);
 		jobSubmitResponse.setJobId(jobId);
 
-		jobStatusList.put(jobId, JOB_WAIT);
+		try {
+			byte[] oFileRespose = nameNode.openFile(Utils.serialize(openFileRequest.build()));
+			OpenFileResponse openFileResponse = (OpenFileResponse) Utils.deserialize(oFileRespose);
+			List<Integer> blockList = openFileResponse.getBlockNumsList();
+			BlockLocationRequest.Builder blockLocationRequest = BlockLocationRequest.newBuilder();
+			for (Integer block : blockList) {
+				blockLocationRequest.addBlockNums(block);
+				System.out.println(block);
+			}
+
+			byte[] bLocationResponse = nameNode.getBlockLocations(Utils.serialize(blockLocationRequest.build()));
+			BlockLocationResponse blockLocationResponse = (BlockLocationResponse) Utils.deserialize(bLocationResponse);
+			List<Protobuf.HDFS.BlockLocations> blockLocationList = blockLocationResponse.getBlockLocationsList();
+			jobQueue.add(jobId);
+			jobList.put(jobId, jobSubmitRequest);
+			jobBlockList.put(jobId, blockLocationList);
+			jobStatusList.put(jobId, JOB_WAIT);
+		} catch(Exception e) {
+			jobSubmitResponse.setStatus(STATUS_NOT_OK);
+			e.printStackTrace();
+		}
 		return Utils.serialize(jobSubmitResponse.build());
 	}
 
@@ -119,6 +142,7 @@ public class JobTracker implements IJobTracker {
 		JobSubmitRequest jobSubmitRequest;
 		String mapName, reducerName, inputFile, outputFile;
 		int numReduceTasks;
+		List<Protobuf.HDFS.BlockLocations> blockLocations;
 		if (jobQueue.size() != 0) {
 			int jobId = jobQueue.remove();
 			jobSubmitRequest = jobList.get(jobId);
@@ -129,47 +153,33 @@ public class JobTracker implements IJobTracker {
 			outputFile = jobSubmitRequest.getOutputFile();
 			numReduceTasks = jobSubmitRequest.getNumReduceTasks();
 
-			OpenFileRequest.Builder openFileRequest = OpenFileRequest.newBuilder();
-			openFileRequest.setFileName(inputFile);
-			openFileRequest.setForRead(true);
+			blockLocations = jobBlockList.get(jobId);
 
-			try {
-				byte[] oFileRespose = nameNode.openFile(Utils.serialize(openFileRequest.build()));
-				OpenFileResponse openFileResponse = (OpenFileResponse) Utils.deserialize(oFileRespose);
-				List<Integer> blockList = openFileResponse.getBlockNumsList();
-				BlockLocationRequest.Builder blockLocationRequest = BlockLocationRequest.newBuilder();
-				for (Integer block : blockList) {
-					blockLocationRequest.addBlockNums(block);
-					System.out.println(block);
+			MapTaskInfo.Builder mapTaskInfo = MapTaskInfo.newBuilder();
+			mapTaskInfo.setMapName(mapName);
+			
+			int taskId = taskCounter;
+			taskStatusList.put(taskId, JOB_WAIT);
+			taskCounter++;
+			ArrayList<Integer> tasks = jobToTasks.get(jobId);
+			if (tasks == null)
+				tasks = new ArrayList<Integer>();
+			tasks.add(taskId);
+			jobToTasks.put(jobId, tasks);
+
+			mapTaskInfo.setTaskId(taskId);
+			mapTaskInfo.setJobId(jobId);
+
+			if(blockLocations.size()>0){
+				mapTaskInfo.addInputBlocks(adapter(blockLocations.get(0)));
+				blockLocations.remove(blockLocations.get(0));
+				jobBlockList.put(jobId, blockLocations);
+				if(blockLocations.size()>0){
+					jobQueue.add(jobId);
 				}
-
-				byte[] bLocationResponse = nameNode.getBlockLocations(Utils.serialize(blockLocationRequest.build()));
-				BlockLocationResponse blockLocationResponse = (BlockLocationResponse) Utils.deserialize(bLocationResponse);
-				
-				int locationStatus = blockLocationResponse.getStatus();
-
-				MapTaskInfo.Builder mapTaskInfo = MapTaskInfo.newBuilder();
-				mapTaskInfo.setMapName(mapName);
-
-				List<Protobuf.HDFS.BlockLocations> blockLocations = blockLocationResponse.getBlockLocationsList(); 
-				for (Protobuf.HDFS.BlockLocations blockLocation : blockLocations) {
-					mapTaskInfo.addInputBlocks(adapter(blockLocation));
-				}
-				
-				int taskId = taskCounter; 
-				taskStatusList.put(taskId, JOB_WAIT);
-				taskCounter++;
-				ArrayList<Integer> tasks = jobToTasks.get(jobId);
-				if (tasks == null)
-					tasks = new ArrayList<Integer>();
-				tasks.add(taskId);
-				jobToTasks.put(jobId, tasks);
-
-				return mapTaskInfo.build();
-
-			} catch (Exception e) {
-				e.printStackTrace();
 			}
+			return mapTaskInfo.build();
+
         }
         return null;
 	}
@@ -181,11 +191,26 @@ public class JobTracker implements IJobTracker {
 				ReducerTaskInfo.Builder reducerTaskInfo = ReducerTaskInfo.newBuilder();
 				reducerTaskInfo.setJobId(jobId);
 
-				//jobToTasks 
+				ArrayList<Integer> tasks = jobToTasks.get(jobId);
+				if (tasks.size() > 0) {
+					int mapTaskId = tasks.remove(0);
+					int taskId = taskCounter; 
+					jobToReduceTask.put(jobId, tasks);
+					reduceTaskStatusList.put(taskId, JOB_WAIT);
+					taskCounter++;
 
-				int taskId = taskCounter; 
-				reduceTaskStatusList.put(taskId, JOB_WAIT);
-				taskCounter++;
+					String mapOutputFile = "job_" + jobId + "_map_" + mapTaskId;
+					reducerTaskInfo.setTaskId(taskId);
+					reducerTaskInfo.addMapOutputFiles(mapOutputFile);
+
+					JobSubmitRequest jobSubmitRequest = jobList.get(jobId);
+					String reducerName = jobSubmitRequest.getReducerName();
+					String outputFile = jobSubmitRequest.getOutputFile();
+
+					reducerTaskInfo.setReducerName(reducerName);
+					reducerTaskInfo.setOutputFile(outputFile);
+				} else
+					continue;
 				return reducerTaskInfo.build();
 			}
 		}
