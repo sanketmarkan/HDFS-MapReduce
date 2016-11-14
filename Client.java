@@ -4,6 +4,7 @@ import java.util.*;
 import Protobuf.HDFS.*;
 import Utils.*;
 import IDataNode.*;
+import INameNode.*;
 
 import com.google.protobuf.ByteString;
 import java.rmi.registry.Registry;
@@ -11,8 +12,7 @@ import java.rmi.registry.LocateRegistry;
 
 public class Client {
 	// Get NameNode from rmiregistry, not with preceding line
-	private static NameNode nameNode = new NameNode();
-
+	private static INameNode nameNode;
 	public static void main(String args[]) {
 		/*
 		if (args[0].equals("get")) {
@@ -24,6 +24,13 @@ public class Client {
 		} else if (args[0].equals("debug")) {
 			debug();
 		}*/
+		try {
+			Registry registry = LocateRegistry.getRegistry();
+			nameNode = (INameNode) registry.lookup("namenode");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+			
 		Scanner in = new Scanner(System.in);
 		String line = "";
 		String command = "";
@@ -77,27 +84,31 @@ public class Client {
 
 			List<BlockLocations> blockLocations = blockLocationResponse.getBlockLocationsList(); 
 			for (BlockLocations location : blockLocations) {
-				DataNodeLocation dataNodeLocation = location.getLocations(0);
-				String dnIP = dataNodeLocation.getIp();
-				int dnPort = dataNodeLocation.getPort();
-				int blockNumber = location.getBlockNumber();
+				List<DataNodeLocation> dataNodeLocationList = location.getLocationsList();
+				for(DataNodeLocation dataNodeLocation : dataNodeLocationList) {
+					String dnIP = dataNodeLocation.getIp();
+					int dnPort = dataNodeLocation.getPort();
+					int blockNumber = location.getBlockNumber();
 
-				Registry registry = LocateRegistry.getRegistry();
-	        	IDataNode dataNode = (IDataNode) registry.lookup("datanode");
+					Registry registry = LocateRegistry.getRegistry();
+		        	IDataNode dataNode = (IDataNode) registry.lookup("datanode");
 
-	        	ReadBlockRequest.Builder readBlockRequest = ReadBlockRequest.newBuilder();
-	        	readBlockRequest.setBlockNumber(blockNumber);
+		        	ReadBlockRequest.Builder readBlockRequest = ReadBlockRequest.newBuilder();
+		        	readBlockRequest.setBlockNumber(blockNumber);
 
-	        	byte[] rBlockResponse = dataNode.readBlock(Utils.serialize(readBlockRequest.build()));
-				ReadBlockResponse readBlockResponse = (ReadBlockResponse) Utils.deserialize(rBlockResponse);
-				int readBlockStatus = readBlockResponse.getStatus();
-				List<ByteString> data = readBlockResponse.getDataList();
-				for (ByteString str : data) {
-					fileContent += str.toStringUtf8();
-					System.out.println(str.toStringUtf8());
+		        	byte[] rBlockResponse = dataNode.readBlock(Utils.serialize(readBlockRequest.build()));
+					ReadBlockResponse readBlockResponse = (ReadBlockResponse) Utils.deserialize(rBlockResponse);
+					int readBlockStatus = readBlockResponse.getStatus();
+					if(readBlockStatus == 1) {
+						List<ByteString> data = readBlockResponse.getDataList();
+						for (ByteString str : data) {
+							fileContent += str.toStringUtf8();
+							System.out.println(str.toStringUtf8());
+						}
+						break;
+					}
 				}
 			}
-
 			int status = openFileResponse.getStatus();
 			int handle = openFileResponse.getHandle();
 		} catch (Exception e) {
@@ -116,7 +127,7 @@ public class Client {
 		openFileRequest.setForRead(false);
 		//////////////////////////////////////////////
 		//											//
-		// TODO										//	
+		// TODO										//
 		// 			break data into 64MB chunks.	//
 		// TODO										//
 		//											//
@@ -200,6 +211,6 @@ public class Client {
 	}
 
 	private static void debug() {
-		nameNode.test();
+		//nameNode.test();
 	}
 }
