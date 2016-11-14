@@ -10,6 +10,7 @@ import IJobTracker.*;
 import INameNode.*;
 
 import Utils.*;
+import com.google.protobuf.ByteString;
 
 import Protobuf.HDFS.OpenFileRequest;
 import Protobuf.HDFS.OpenFileResponse;
@@ -122,7 +123,11 @@ public class JobTracker implements IJobTracker {
 		int numReduceSlotsFree = heartBeatRequest.getNumReduceSlotsFree();
 		DataNodeLocation location =  heartBeatRequest.getLocations();
 
-		updateJobStatus(heartBeatRequest.getMapStatusList());
+		updateMapTaskStatus(heartBeatRequest.getMapStatusList());
+		updateReduceTaskStatus(heartBeatRequest.getReduceStatusList());
+		updateJobStatus();
+
+
 		HeartBeatResponse.Builder heartBeatResponse = HeartBeatResponse.newBuilder();
 
 		if (numMapSlotsFree > 0) {	
@@ -135,7 +140,7 @@ public class JobTracker implements IJobTracker {
 		}
 
 		heartBeatResponse.setStatus(STATUS_OK);
-		return return Utils.serialize(heartBeatResponse.build());
+		return Utils.serialize(heartBeatResponse.build());
 	}
 
 	private MapTaskInfo assignJobToMaps() {
@@ -214,6 +219,7 @@ public class JobTracker implements IJobTracker {
 				return reducerTaskInfo.build();
 			}
 		}
+		return null;
 	}
 
 	private BlockLocations adapter(Protobuf.HDFS.BlockLocations location) {
@@ -231,10 +237,9 @@ public class JobTracker implements IJobTracker {
 		return blockLoc.build();
 	}
 
-	/*private void updateMapTaskStatus(List<MapTaskStatus> statusList) {
-		int jobId = 0;
+	private void updateMapTaskStatus(List<MapTaskStatus> statusList) {
 		for (MapTaskStatus status : statusList) {
-			jobId = status.getJobId();
+			int jobId = status.getJobId();
 			int taskId = status.getTaskId();
 			if (status.getTaskCompleted()) {
 				taskStatusList.put(taskId, JOB_FINISH);
@@ -243,37 +248,23 @@ public class JobTracker implements IJobTracker {
 	}
 
 	private void updateReduceTaskStatus(List<ReduceTaskStatus> statusList) {
-		int jobId = 0;
 		for (ReduceTaskStatus status : statusList) {
-			jobId = status.getJobId();
+			int jobId = status.getJobId();
 			int taskId = status.getTaskId();
 			if (status.getTaskCompleted()) {
 				reduceTaskStatusList.put(taskId, JOB_FINISH);
 			}
 		}
-	}*/
+	}
 
-	private void updateJobStatus(List<Object> statusList) {
-		for (Object status : statusList) {
-			int jobId = status.getJobId();
-			int taskId = status.getTaskId();
-			// update task status
-			if (status InstanceOf MapTaskStatus) {
-				if (((MapTaskStatus)status).getTaskCompleted()) {
-					taskStatusList.put(taskId, JOB_FINISH);
-				}
-			} else {
-				if (((ReduceTaskStatus)status).getTaskCompleted()) {
-					reduceTaskStatusList.put(taskId, JOB_FINISH);
-				}
-			}
-			
-			// update job status
+	private void updateJobStatus() {
+		// update job status
+		for (Integer jobId : jobStatusList.keySet()) {
 			ArrayList<Integer> mapTasks = jobToTasks.get(jobId);
 			boolean jobMapDone = true;
 			for (Integer task : mapTasks) {
-				if (jobToTasks.get(jobToTasks) != JOB_FINISH) {
-					jobDone = false;
+				if (taskStatusList.get(task) != JOB_FINISH) {
+					jobMapDone = false;
 					break;
 				}
 			}
@@ -281,8 +272,8 @@ public class JobTracker implements IJobTracker {
 			ArrayList<Integer> reduceTasks = jobToReduceTask.get(jobId);
 			boolean jobReduceDone = true;
 			for (Integer task : reduceTasks) {
-				if (jobToReduceTask.get(jobToTasks) != JOB_FINISH) {
-					jobDone = false;
+				if (reduceTaskStatusList.get(task) != JOB_FINISH) {
+					jobReduceDone = false;
 					break;
 				}
 			}

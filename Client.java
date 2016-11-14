@@ -44,7 +44,7 @@ public class Client {
 			if (command.equals("get")) {
 				get_file(fileName);
 			} else if (command.equals("put")) {
-				put_file(fileName);
+				put_file(fileName, "this is file content");
 			} else if (command.equals("list")) {
 
 			} else if (command.equals("debug")) {
@@ -106,7 +106,7 @@ public class Client {
 		return fileContent;
 	}
 
-	public static void put_file(String fileName) {
+	public static void put_file(String fileName, String data) {
 		int status;
 		int fileHandle = -1;
 
@@ -131,7 +131,7 @@ public class Client {
 			System.out.println("file open status: " + status);
 			System.out.println("file handle: " + fileHandle);
 			//nameNode.test();
-			String data = "This is file content";
+			
 			AssignBlockRequest.Builder assignBlockRequest = AssignBlockRequest.newBuilder();
 			assignBlockRequest.setHandle(fileHandle);
 
