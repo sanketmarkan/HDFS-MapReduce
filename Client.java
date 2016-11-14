@@ -60,7 +60,8 @@ public class Client {
 		}
 	}
 
-	private static void get_file(String fileName) {
+	public static String get_file(String fileName) {
+		String fileContent = "";
 		System.out.println(fileName);
 		OpenFileRequest.Builder openFileRequest = OpenFileRequest.newBuilder();
 		openFileRequest.setFileName(fileName);
@@ -99,6 +100,7 @@ public class Client {
 				int readBlockStatus = readBlockResponse.getStatus();
 				List<ByteString> data = readBlockResponse.getDataList();
 				for (ByteString str : data) {
+					fileContent += str.toStringUtf8();
 					System.out.println(str.toStringUtf8());
 				}
 			}
@@ -108,9 +110,10 @@ public class Client {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		return fileContent;
 	}
 
-	private static void put_file(String fileName) {
+	public static void put_file(String fileName) {
 		int status;
 		int fileHandle = -1;
 
