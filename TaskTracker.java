@@ -24,7 +24,7 @@ public class TaskTracker {
 
 	private static int taskTrackerId;
 	private static int numMapSlotsFree = 1;
-	private static int numReduceSlotsFree = 0;
+	private static int numReduceSlotsFree = 1;
 
 	private static final int STATUS_OK = 1;
 	private static final int STATUS_NOT_OK = 0;
@@ -43,7 +43,12 @@ public class TaskTracker {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		heartBeat();
+		while (true) {
+			Scanner in = new Scanner(System.in);
+			String line = in.nextLine();
+			if (line.equals("beat"))
+				heartBeat();
+		}
 	}
 
 	private static void heartBeat() {

@@ -95,6 +95,7 @@ public class JobTracker implements IJobTracker {
 			jobSubmitResponse.setStatus(STATUS_NOT_OK);
 			e.printStackTrace();
 		}
+		System.out.println("Job submitted: " + jobId);
 		return Utils.serialize(jobSubmitResponse.build());
 	}
 
@@ -103,8 +104,9 @@ public class JobTracker implements IJobTracker {
 		int jobId = jobStatusRequest.getJobId();
 
 		System.out.println("Job Status Query: " + jobId);
+		printJobStatus();
 		JobStatusResponse.Builder jobStatusResponse = JobStatusResponse.newBuilder();
-		if (jobId < jobCounter) {
+		if (jobId < jobCounter && jobId > 0) {
 			jobStatusResponse.setStatus(STATUS_OK);
 			jobStatusResponse.setJobDone(jobStatusList.get(jobId) == JOB_FINISH);
 			jobStatusResponse.setTotalMapTasks(0);
@@ -138,11 +140,12 @@ public class JobTracker implements IJobTracker {
 			ReducerTaskInfo reduceTaskInfo = assignJobToReduce();
 			heartBeatResponse.addReduceTasks(reduceTaskInfo);
 		}
-
 		heartBeatResponse.setStatus(STATUS_OK);
+		
 		return Utils.serialize(heartBeatResponse.build());
 	}
 
+	// Break job into map & reduce tasks just after job submitted, not at the time when TT calls
 	private MapTaskInfo assignJobToMaps() {
 		JobSubmitRequest jobSubmitRequest;
 		String mapName, reducerName, inputFile, outputFile;
@@ -291,6 +294,27 @@ public class JobTracker implements IJobTracker {
 			else if (jobMapDone)
 				jobStatusList.put(jobId, JOB_MAP_DONE);
 		}
+	}
+
+	public void printJobStatus() {
+		for (Integer jobId : jobStatusList.keySet()) {
+			System.out.println("Job: " + jobId + "Status :" + jobStatusList.get(jobId));
+			ArrayList<Integer> mapTasks = jobToTasks.get(jobId);
+			if (mapTasks != null) {
+				System.out.println("Map");
+				for (Integer task : mapTasks) {
+					System.out.println(task + ":" + taskStatusList.get(task));
+				}
+			}
+
+			ArrayList<Integer> reduceTasks = jobToReduceTask.get(jobId);
+			if (reduceTasks != null) {
+				System.out.println("Reduce");
+				for (Integer task : reduceTasks) {
+					System.out.println(task + ":" + reduceTaskStatusList.get(task));
+				}
+			}
+		}	
 	}
 
 } 

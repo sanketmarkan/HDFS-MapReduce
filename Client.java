@@ -51,9 +51,9 @@ public class Client {
 			if (command.equals("get")) {
 				get_file(fileName);
 			} else if (command.equals("put")) {
-				put_file(fileName, "this is file content");
+				put_file(fileName, "this is file content\n");
 			} else if (command.equals("list")) {
-
+				list_files();
 			} else if (command.equals("debug")) {
 				debug();
 			}
@@ -202,8 +202,10 @@ public class Client {
 
 			ListFilesResponse listFilesResponse = (ListFilesResponse) Utils.deserialize(lFilesResponse);
 			List<String> fileList = listFilesResponse.getFileNamesList();
-			for (String file : fileList) {
-				System.out.println(file);
+			if (fileList != null) {
+				for (String file : fileList) {
+					System.out.println(file);
+				}
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

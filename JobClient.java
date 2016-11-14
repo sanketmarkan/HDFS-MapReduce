@@ -48,19 +48,23 @@ public class JobClient {
 	        Registry registry = LocateRegistry.getRegistry();
 	        IJobTracker stub = (IJobTracker) registry.lookup("jobtracker");
 	        while(true) {
-		        byte[] responseByte = stub.getJobStatus(Utils.serialize(request.build()));
-		        JobStatusResponse response = (JobStatusResponse) Utils.deserialize(responseByte);
+	        	Scanner in = new Scanner(System.in);
+				String line = in.nextLine();
+				if (line.equals("track")) {
+			        byte[] responseByte = stub.getJobStatus(Utils.serialize(request.build()));
+			        JobStatusResponse response = (JobStatusResponse) Utils.deserialize(responseByte);
 
-		        if (response.getStatus() == 1){
-					if(response.getJobDone()){
-						System.out.println("JOB DONE!!");
-						return;
-					}
-					System.out.println("Total Map Tasks : "+response.getTotalMapTasks());
-					System.out.println("Total Map Tasks Started: "+response.getNumMapTasksStarted());
-					System.out.println("Total Reduce Tasks : "+response.getTotalReduceTasks());
-					System.out.println("Total Reduce Tasks Started : "+response.getNumReduceTasksStarted());
-		        }
+			        if (response.getStatus() == 1){
+						if(response.getJobDone()){
+							System.out.println("JOB DONE!!");
+							return;
+						}
+						System.out.println("Total Map Tasks : "+response.getTotalMapTasks());
+						System.out.println("Total Map Tasks Started: "+response.getNumMapTasksStarted());
+						System.out.println("Total Reduce Tasks : "+response.getTotalReduceTasks());
+						System.out.println("Total Reduce Tasks Started : "+response.getNumReduceTasksStarted());
+			        }
+		    	}
 		    }
 	    } catch (Exception e) {
 	    	e.printStackTrace();
