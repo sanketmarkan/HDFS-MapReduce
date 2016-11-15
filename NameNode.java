@@ -222,12 +222,17 @@ public class NameNode implements INameNode {
 	@Override
 	public byte[] list(byte[] inp) throws RemoteException {
 		ListFilesRequest directory = (ListFilesRequest) Utils.deserialize(inp);
-		test();
-		if(directory.hasDirName()){
-			ArrayList<String> list = filesDir.get(directory.getDirName());
-			return ListFilesResponse.newBuilder().setStatus(1).addAllFileNames(list).build().toByteArray();
+		// // test();
+		// if(directory.hasDirName()){
+		// 	ArrayList<String> list = filesDir.get(directory.getDirName());
+		// 	return ListFilesResponse.newBuilder().setStatus(1).addAllFileNames(list).build().toByteArray();
+		// }
+		ListFilesResponse.Builder response = ListFilesResponse.newBuilder();
+		response.setStatus(STATUS_OK);
+		for(String file : fileToInt.keySet()){
+			response.addFileNames(file);
 		}
-		return ListFilesResponse.newBuilder().setStatus(1).addAllFileNames(fileToInt.keySet()).build().toByteArray();
+		return Utils.serialize(response.build());
 	}
 
 	@Override
