@@ -4,6 +4,7 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.server.UnicastRemoteObject;
 
 import java.util.*;
+import java.util.concurrent.locks.*;
 import java.io.*;
 import java.text.*;
 
@@ -22,7 +23,7 @@ public class NameNode implements INameNode {
 	private static int fileCounter = 1;
 	private static int blockCounter = 1;
 	private static int handleCounter = 1;
-
+	private static Lock lock = new ReentrantLock();
 	private static final int STATUS_OK = 1;
 	private static final int STATUS_NOT_OK = 0;
 
@@ -36,7 +37,9 @@ public class NameNode implements INameNode {
 						DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
 						Calendar cal = Calendar.getInstance();
                     	for(Integer dataNode : livingDataNodes.keySet()) {
+                    		lock.lock();
                     		String last_beat = lastBeatNode.get(dataNode);
+							lock.unlock();
 							String time_now = dateFormat.format(cal.getTime());
 							SimpleDateFormat format = new SimpleDateFormat("HH:mm:ss");
 
@@ -53,7 +56,9 @@ public class NameNode implements INameNode {
 						    long diff = d2.getTime() - d1.getTime();
 						    long diffSeconds = diff / 1000 % 60;
 						    if(diffSeconds > 10) {
+						    	lock.lock();
 						    	livingDataNodes.remove(dataNode);
+						    	lock.unlock();
 						    }
                     	}
                         try {
@@ -114,11 +119,13 @@ public class NameNode implements INameNode {
 			} else {
 				System.out.println("Creating file....");	
 				fileToInt.put(fileName, fileCounter);
+				lock.lock();
 				int fileId = fileCounter;
 				int handle = handleCounter;
 				handleCounter++;
 				fileCounter++;
 				handleList.put(handle, fileId);
+				lock.unlock();
 				openFileResponse.setStatus(STATUS_OK);
 				openFileResponse.setHandle(handle);
 			}
@@ -133,7 +140,9 @@ public class NameNode implements INameNode {
 
 		CloseFileResponse.Builder closeFileResponse = CloseFileResponse.newBuilder();
 		try {
+			lock.lock();
 			handleList.remove(handle);
+			lock.unlock();
 			closeFileResponse.setStatus(STATUS_OK);
 		} catch (Exception e) {
 			closeFileResponse.setStatus(STATUS_NOT_OK);
@@ -170,15 +179,19 @@ public class NameNode implements INameNode {
 		}
 
 		int fileId = handleList.get(handle);
+		lock.lock();
 		int blockId = blockCounter;
 		System.out.println(fileId+" "+handle);
 		blockCounter++;
+		lock.unlock();
 		// insert in blockList
 		ArrayList<Integer> fileBlockList = blockList.get(fileId);
 		if (fileBlockList == null)
 			fileBlockList = new ArrayList<Integer>();
 		fileBlockList.add(blockId);
+		lock.lock();
 		blockList.put(fileId, fileBlockList); 
+		lock.unlock();
 		BlockLocations.Builder blockLocations = BlockLocations.newBuilder();
 		blockLocations.setBlockNumber(blockId);
 
@@ -186,7 +199,7 @@ public class NameNode implements INameNode {
 		
 		System.out.println(livingDataNodes.size());
 		if(livingDataNodes.size() == 0) {
-			assignBlockResponse.setStatus(2);
+			assignBlockResponse.setStatus(STATUS_NOT_OK);
 			return Utils.serialize(assignBlockResponse.build());
 		}
 		for (int num = 0 ; num<Math.min(3, (int)livingDataNodes.size());num++){
