@@ -5,6 +5,8 @@ import java.rmi.server.UnicastRemoteObject;
 
 import java.util.*;
 import java.io.*;
+import java.net.*;
+import java.lang.reflect.*;
 
 import IJobTracker.*;
 import INameNode.*;
@@ -128,12 +130,30 @@ public class TaskTracker {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		String mapOutput = new MapNode().map(fileContent) + "\n";
-		System.out.println(mapOutput);
+		try {
+			/*File file = new File(mapName + ".jar");
+    		URL url = file.toURI().toURL();
 
-		// write to file
-		String fileName = "job_" + jobId + "_map_" + taskId;
-		client.put_file(fileName, mapOutput);
+    		System.out.println(url);
+
+			URLClassLoader classLoader = (URLClassLoader) ClassLoader.getSystemClassLoader();
+
+			Method method = URLClassLoader.class.getDeclaredMethod("map", String.class);
+		    method.setAccessible(true);
+    		
+			String mapOutput = (String) method.invoke(classLoader, fileContent);*/
+
+			MapNode myMap = (MapNode) Class.forName(mapName).newInstance();
+			String mapOutput = myMap.map(fileContent) + "\n";
+			//String mapOutput = new MapNode().map(fileContent) + "\n";
+			System.out.println(mapOutput);
+
+			// write to file
+			String fileName = "job_" + jobId + "_map_" + taskId;
+			client.put_file(fileName, mapOutput);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	private static void doReduceTask(ReducerTaskInfo reducerTaskInfo) {
@@ -147,8 +167,13 @@ public class TaskTracker {
 		for (String fileName : mapOutputFiles) {
 			fileContent = client.get_file(fileName);
 			for (String part : fileContent.split("\n")) {
-				String output = new ReduceNode().reduce(fileContent);
-				mapOutput += output;
+				try {
+					ReduceNode myReduce = (ReduceNode) Class.forName(reduceName).newInstance();
+					String output = myReduce.reduce(fileContent);
+					mapOutput += output;
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
 			}
 		}
 		String outputFileName = outputFile + "_" + jobId + "_" + taskId;

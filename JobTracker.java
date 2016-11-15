@@ -251,6 +251,9 @@ public class JobTracker implements IJobTracker {
 
 			Set<Integer> reducers = reducerList.get(jobId);
 			int allowed = reducerAllowed.get(jobId);
+			if (reducers == null) {
+				reducers = new HashSet<Integer>();
+			}
 			if (allowed == reducers.size()) {
 				int done = 0;
 				for (int i : reducers) {
