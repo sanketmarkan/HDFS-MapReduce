@@ -36,8 +36,9 @@ public class TaskTracker {
 	public static void main(String args[]) {
 		taskTrackerId = 1;
 		try {
-			Registry registry = LocateRegistry.getRegistry();
+			Registry registry = LocateRegistry.getRegistry(Constants.jtIp,Constants.jtPort);
 			jobTracker = (IJobTracker) registry.lookup("jobtracker");
+			registry = LocateRegistry.getRegistry(Constants.nnIp,Constants.nnPort);
 			nameNode = (INameNode) registry.lookup("namenode");
 			client = new Client();
 		} catch (Exception e) {
@@ -109,7 +110,7 @@ public class TaskTracker {
 				int dnPort = dataNodeLocation.getPort();
 				int blockNumber = location.getBlockNumber();
 
-				Registry registry = LocateRegistry.getRegistry();
+				Registry registry = LocateRegistry.getRegistry(dnIP,dnPort);
 	        	IDataNode dataNode = (IDataNode) registry.lookup("datanode");
 
 	        	ReadBlockRequest.Builder readBlockRequest = ReadBlockRequest.newBuilder();
