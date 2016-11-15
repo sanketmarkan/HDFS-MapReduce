@@ -51,7 +51,8 @@ public class Client {
 			if (command.equals("get")) {
 				get_file(fileName);
 			} else if (command.equals("put")) {
-				put_file(fileName, "this is file key content\n");
+				String data = getFileContent(fileName);
+				put_file(fileName, data);
 			} else if (command.equals("list")) {
 				list_files();
 			} else if (command.equals("debug")) {
@@ -118,6 +119,7 @@ public class Client {
 	}
 
 	public static void put_file(String fileName, String data) {
+		//System.out.println(data);
 		int status;
 		int fileHandle = -1;
 
@@ -125,13 +127,7 @@ public class Client {
 		OpenFileRequest.Builder openFileRequest = OpenFileRequest.newBuilder();
 		openFileRequest.setFileName(fileName);
 		openFileRequest.setForRead(false);
-		//////////////////////////////////////////////
-		//											//
-		// TODO										//
-		// 			break data into 64MB chunks.	//
-		// TODO										//
-		//											//
-		//////////////////////////////////////////////
+
 		try {
 			byte[] oFileRespose = nameNode.openFile(Utils.serialize(openFileRequest.build()));
 			OpenFileResponse openFileResponse = (OpenFileResponse) Utils.deserialize(oFileRespose);
@@ -166,7 +162,20 @@ public class Client {
 
 		    	WriteBlockRequest.Builder writeBlockRequest = WriteBlockRequest.newBuilder();
 				writeBlockRequest.setBlockNumber(blockNumber);
-				writeBlockRequest.addData(ByteString.copyFromUtf8(data));
+
+				int loop = ((data.length())/64) + 1;
+				int lastIdx = 0;
+				System.out.println(loop);
+				for (int i=0; i<loop; i++) {
+					String sub;
+					if (i == loop-1)
+						sub = data.substring(lastIdx);
+					else
+						sub = data.substring(lastIdx, lastIdx+64);
+					System.out.println(sub);
+					writeBlockRequest.addData(ByteString.copyFromUtf8(sub));
+				}
+				
 
 				byte[] wBlockResponse = dataNode.writeBlock(Utils.serialize(writeBlockRequest.build()));
 				WriteBlockResponse writeBlockResponse = (WriteBlockResponse) Utils.deserialize(wBlockResponse);
@@ -214,5 +223,23 @@ public class Client {
 
 	private static void debug() {
 		//nameNode.test();
+	}
+
+	private static String getFileContent(String fileName) {
+		File file = new File(fileName);
+		String content = "";
+        ReadBlockResponse.Builder response = ReadBlockResponse.newBuilder();
+        if (file.exists()) {
+            try {
+                BufferedReader br = new BufferedReader(new FileReader(file));
+                String currLine;
+                while ((currLine = br.readLine()) != null) {
+                	content += currLine;
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return content;
 	}
 }
