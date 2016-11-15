@@ -179,11 +179,13 @@ public class JobTracker implements IJobTracker {
 
 		if (numMapSlotsFree > 0) {	
 			MapTaskInfo mapTaskInfo = assignJobToMaps();
-			heartBeatResponse.addMapTasks(mapTaskInfo);
+			if (mapTaskInfo != null)
+				heartBeatResponse.addMapTasks(mapTaskInfo);
 		}
 		if (numReduceSlotsFree > 0) {
 			ReducerTaskInfo reduceTaskInfo = assignJobToReduce();
-			heartBeatResponse.addReduceTasks(reduceTaskInfo);
+			if (reduceTaskInfo != null)
+				heartBeatResponse.addReduceTasks(reduceTaskInfo);
 		}
 		heartBeatResponse.setStatus(STATUS_OK);
 		
@@ -207,9 +209,11 @@ public class JobTracker implements IJobTracker {
 					newList.add(tasks.get(i));
 				}
 				tasks = newList;
-				jobToTasks.put(jobId, tasks);
 				if(tasks.size()>0){
+					jobToTasks.put(jobId, tasks);
 					jobQueue.add(jobId);
+				} else {
+					jobToTasks.remove(jobId);
 				}
 				return to_give_task;
 			}
@@ -230,7 +234,12 @@ public class JobTracker implements IJobTracker {
 						newList.add(reduceTasks.get(i));
 					}
 					reduceTasks = newList;
-					jobToReduceTask.put(jobId, reduceTasks);
+					if(reduceTasks.size()>0){
+						jobToReduceTask.put(jobId, reduceTasks);
+					} else {
+						jobToReduceTask.remove(jobId);
+					}
+					
 					return to_give_task;
 				}
 			}
@@ -306,7 +315,7 @@ public class JobTracker implements IJobTracker {
 
 	public void printJobStatus() {
 		for (Integer jobId : jobStatusList.keySet()) {
-			System.out.println("Job: " + jobId + "Status :" + jobStatusList.get(jobId));
+			System.out.println("Job: " + jobId + " Status :" + jobStatusList.get(jobId));
 			ArrayList<MapTaskInfo> mapTasks = jobToTasks.get(jobId);
 			if (mapTasks != null) {
 				System.out.println("Map");

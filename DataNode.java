@@ -150,7 +150,7 @@ public class DataNode implements IDataNode {
 	        INameNode stub = (INameNode) registry.lookup("namenode");
             HeartBeatRequest.Builder request = HeartBeatRequest.newBuilder();
 	        request.setId(myId);
-            String networkInterfaceName = "wlp6s0";
+            String networkInterfaceName = "eth0";
             Inet4Address inetAddress = null;
             try {
                 Enumeration<InetAddress> enumeration = NetworkInterface.getByName(networkInterfaceName).getInetAddresses();
