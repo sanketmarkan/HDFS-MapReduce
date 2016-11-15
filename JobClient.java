@@ -10,7 +10,7 @@ import IJobTracker.*;
 
 public class JobClient {
 	public static void main(String args[]) {
-		if(args.length < 0){
+		if(args.length < 5){
 			System.out.println("JobClient should be invoked as 'JobClient <mapName> <reducerName> <inputFile in HDFS> <outputFile in HDFS> <numReducers>'");
 		}
 

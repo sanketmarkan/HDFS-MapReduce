@@ -29,7 +29,7 @@ public class JobTracker implements IJobTracker {
 	private static HashMap<Integer, List<Protobuf.HDFS.BlockLocations>> jobBlockList = new HashMap<>();
 
 	// Map task of a Job
-	private static HashMap<Integer, ArrayList<Integer>> jobToTasks = new HashMap<>();	
+	private static HashMap<Integer, ArrayList<MapTaskInfo>> jobToTasks = new HashMap<>();	
 	private static HashMap<Integer, Integer> taskStatusList = new HashMap<>(); // map task status
 
 	// Reduce task of a Job
@@ -65,11 +65,18 @@ public class JobTracker implements IJobTracker {
 		int jobId = jobCounter;
 		jobCounter++;
 
-		String inputFile;
+		String mapName, reducerName, inputFile, outputFile;
+		int numReduceTasks;
+		mapName = jobSubmitRequest.getMapName();
+		reducerName = jobSubmitRequest.getReducerName();
 		inputFile = jobSubmitRequest.getInputFile();
+		outputFile = jobSubmitRequest.getOutputFile();
+		numReduceTasks = jobSubmitRequest.getNumReduceTasks();
+		
 		OpenFileRequest.Builder openFileRequest = OpenFileRequest.newBuilder();
 		openFileRequest.setFileName(inputFile);
 		openFileRequest.setForRead(true);
+		
 		JobSubmitResponse.Builder jobSubmitResponse = JobSubmitResponse.newBuilder();
 		jobSubmitResponse.setStatus(STATUS_OK);
 		jobSubmitResponse.setJobId(jobId);
@@ -87,9 +94,23 @@ public class JobTracker implements IJobTracker {
 			byte[] bLocationResponse = nameNode.getBlockLocations(Utils.serialize(blockLocationRequest.build()));
 			BlockLocationResponse blockLocationResponse = (BlockLocationResponse) Utils.deserialize(bLocationResponse);
 			List<Protobuf.HDFS.BlockLocations> blockLocationList = blockLocationResponse.getBlockLocationsList();
+
+			ArrayList<MapTaskInfo> tasks = new ArrayList<MapTaskInfo>();
+			for(Protobuf.HDFS.BlockLocations blockLocation :blockLocationList) {
+				MapTaskInfo.Builder mapTaskInfo = MapTaskInfo.newBuilder();
+				
+				int taskId = taskCounter;
+				taskStatusList.put(taskId, JOB_WAIT);
+				taskCounter++;
+
+				mapTaskInfo.setMapName(mapName);
+				mapTaskInfo.setTaskId(taskId);
+				mapTaskInfo.setJobId(jobId);
+				mapTaskInfo.addInputBlocks(adapter(blockLocation));
+				tasks.add(mapTaskInfo.build());
+			}
+			jobToTasks.put(jobId, tasks);
 			jobQueue.add(jobId);
-			jobList.put(jobId, jobSubmitRequest);
-			jobBlockList.put(jobId, blockLocationList);
 			jobStatusList.put(jobId, JOB_WAIT);
 		} catch(Exception e) {
 			jobSubmitResponse.setStatus(STATUS_NOT_OK);
@@ -153,45 +174,21 @@ public class JobTracker implements IJobTracker {
 		List<Protobuf.HDFS.BlockLocations> blockLocations;
 		if (jobQueue.size() != 0) {
 			int jobId = jobQueue.remove();
-			jobSubmitRequest = jobList.get(jobId);
-			
-			mapName = jobSubmitRequest.getMapName();
-			reducerName = jobSubmitRequest.getReducerName();
-			inputFile = jobSubmitRequest.getInputFile();
-			outputFile = jobSubmitRequest.getOutputFile();
-			numReduceTasks = jobSubmitRequest.getNumReduceTasks();
 
-			blockLocations = jobBlockList.get(jobId);
-
-			MapTaskInfo.Builder mapTaskInfo = MapTaskInfo.newBuilder();
-			mapTaskInfo.setMapName(mapName);
-			
-			int taskId = taskCounter;
-			taskStatusList.put(taskId, JOB_WAIT);
-			taskCounter++;
-			ArrayList<Integer> tasks = jobToTasks.get(jobId);
-			if (tasks == null)
-				tasks = new ArrayList<Integer>();
-			tasks.add(taskId);
-			jobToTasks.put(jobId, tasks);
-
-			mapTaskInfo.setTaskId(taskId);
-			mapTaskInfo.setJobId(jobId);
-
-			if(blockLocations.size()>0){
-				mapTaskInfo.addInputBlocks(adapter(blockLocations.get(0)));
-				// blockLocations.remove(0);
-				List<Protobuf.HDFS.BlockLocations> newList = new ArrayList<Protobuf.HDFS.BlockLocations>();
-				for(int i=1;i<blockLocations.size();i++){
-					newList.add(blockLocations.get(i));
+			ArrayList<MapTaskInfo> tasks = jobToTasks.get(jobId);
+			if(tasks.size()>0){
+				MapTaskInfo to_give_task = tasks.get(0);
+				ArrayList<MapTaskInfo> newList = new ArrayList<MapTaskInfo>();
+				for(int i=1;i<tasks.size();i++){
+					newList.add(tasks.get(i));
 				}
-				blockLocations = newList;
-				jobBlockList.put(jobId, blockLocations);
-				if(blockLocations.size()>0){
+				tasks = newList;
+				jobToTasks.put(jobId, tasks);
+				if(tasks.size()>0){
 					jobQueue.add(jobId);
 				}
+				return to_give_task;
 			}
-			return mapTaskInfo.build();
 
         }
         return null;
@@ -204,7 +201,7 @@ public class JobTracker implements IJobTracker {
 				ReducerTaskInfo.Builder reducerTaskInfo = ReducerTaskInfo.newBuilder();
 				reducerTaskInfo.setJobId(jobId);
 
-				ArrayList<Integer> tasks = jobToTasks.get(jobId);
+				ArrayList<MapTaskInfo> tasks = jobToTasks.get(jobId);
 				if (tasks.size() > 0) {
 					int mapTaskId = tasks.remove(0);
 					int taskId = taskCounter; 

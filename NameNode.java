@@ -28,6 +28,29 @@ public class NameNode implements INameNode {
 
 	public static void main(String args[]){
 		init();
+		new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (true) {
+                    try{
+						DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
+						Calendar cal = Calendar.getInstance();
+						Time time_now = cal.getTime();
+                    	for(Integer dataNode : livingDataNodes.keySet()) {
+                    		String last_beat = lastBeatNode.get(dataNode);
+                    		System.out.println(last_beat+" "+time_now);
+                    	}
+                        try {
+                            Thread.sleep(5000);
+                        } catch (InterruptedException e) {
+                            // nope
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }).start();
 	}
 
     public static void init() {
