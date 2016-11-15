@@ -14,7 +14,7 @@ public class Client {
 	private static INameNode nameNode;
 	public Client() {
 		try {
-			Registry registry = LocateRegistry.getRegistry();
+			Registry registry = LocateRegistry.getRegistry(Constants.nnIp,Constants.nnPort);
 			nameNode = (INameNode) registry.lookup("namenode");
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -24,7 +24,7 @@ public class Client {
 	public static void main(String args[]) {
 		if (nameNode == null) {
 			try {
-				Registry registry = LocateRegistry.getRegistry();
+				Registry registry = LocateRegistry.getRegistry(Constants.nnIp,Constants.nnPort);
 				nameNode = (INameNode) registry.lookup("namenode");
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -90,7 +90,7 @@ public class Client {
 					int dnPort = dataNodeLocation.getPort();
 					int blockNumber = location.getBlockNumber();
 
-					Registry registry = LocateRegistry.getRegistry();
+					Registry registry = LocateRegistry.getRegistry(dnIP,dnPort);
 		        	IDataNode dataNode = (IDataNode) registry.lookup("datanode");
 
 		        	ReadBlockRequest.Builder readBlockRequest = ReadBlockRequest.newBuilder();
@@ -161,7 +161,7 @@ public class Client {
 				String dnIP = dataNodeLocation.getIp();
 				int dnPort = dataNodeLocation.getPort();
 				int blockNumber = blockLocations.getBlockNumber();
-				Registry registry = LocateRegistry.getRegistry();
+				Registry registry = LocateRegistry.getRegistry(dnIP,dnPort);
 		    	IDataNode dataNode = (IDataNode) registry.lookup("datanode");
 
 		    	WriteBlockRequest.Builder writeBlockRequest = WriteBlockRequest.newBuilder();
