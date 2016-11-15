@@ -35,10 +35,26 @@ public class NameNode implements INameNode {
                     try{
 						DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
 						Calendar cal = Calendar.getInstance();
-						Time time_now = cal.getTime();
                     	for(Integer dataNode : livingDataNodes.keySet()) {
                     		String last_beat = lastBeatNode.get(dataNode);
-                    		System.out.println(last_beat+" "+time_now);
+							String time_now = dateFormat.format(cal.getTime());
+							SimpleDateFormat format = new SimpleDateFormat("HH:mm:ss");
+
+						    Date d1 = null;
+						    Date d2 = null;
+						    try {
+						        d1 = format.parse(last_beat);
+						        d2 = format.parse(time_now);
+						    } catch (ParseException e) {
+						        e.printStackTrace();
+						    }
+
+						    // Get msec from each, and subtract.
+						    long diff = d2.getTime() - d1.getTime();
+						    long diffSeconds = diff / 1000 % 60;
+						    if(diffSeconds > 10) {
+						    	livingDataNodes.remove(dataNode);
+						    }
                     	}
                         try {
                             Thread.sleep(5000);
@@ -230,7 +246,6 @@ public class NameNode implements INameNode {
 
 	@Override
 	public byte[] heartBeat(byte[] inp) throws RemoteException {
-		// REMOVE DATANODE ON BASIS OF THIS 
 		// REMOVE BLOCK LOCATIONS ON BASIS OF BLOCKREPORT
 		// CORRESPONDING TO PREVIOUS STEP ADD NEW BLOCK LOCATIONS FOR A BLOCK
 
