@@ -58,6 +58,24 @@ public class JobTracker implements IJobTracker {
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (true) {
+                    try{
+                        updateJobStatus();
+                        try {
+                            Thread.sleep(1000);
+                        } catch (InterruptedException e) {
+                            // nope
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }).start();
 	}
 
 	public byte[] jobSubmit(byte[] inp) {
@@ -172,7 +190,6 @@ public class JobTracker implements IJobTracker {
 
 		updateMapTaskStatus(heartBeatRequest.getMapStatusList());
 		updateReduceTaskStatus(heartBeatRequest.getReduceStatusList());
-		updateJobStatus();
 
 
 		HeartBeatResponse.Builder heartBeatResponse = HeartBeatResponse.newBuilder();
@@ -282,7 +299,7 @@ public class JobTracker implements IJobTracker {
 		}
 	}
 
-	private void updateJobStatus() {
+	private static void updateJobStatus() {
 		// update job status
 		for (Integer jobId : jobStatusList.keySet()) {
 			ArrayList<MapTaskInfo> mapTasks = jobToTasks.get(jobId);

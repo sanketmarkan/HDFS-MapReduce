@@ -43,12 +43,29 @@ public class TaskTracker {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		while (true) {
-			Scanner in = new Scanner(System.in);
-			String line = in.nextLine();
-			if (line.equals("beat"))
-				heartBeat();
-		}
+		// while (true) {
+		// 	Scanner in = new Scanner(System.in);
+		// 	String line = in.nextLine();
+		// 	if (line.equals("beat"))
+		// 		heartBeat();
+		// }
+		new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (true) {
+                    try{
+                        heartBeat();
+                        try {
+                            Thread.sleep(1000);
+                        } catch (InterruptedException e) {
+                            // nope
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }).start();
 	}
 
 	private static void heartBeat() {
