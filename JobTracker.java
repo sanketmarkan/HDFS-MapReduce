@@ -33,7 +33,7 @@ public class JobTracker implements IJobTracker {
 	private static HashMap<Integer, Integer> taskStatusList = new HashMap<>(); // map task status
 
 	// Reduce task of a Job
-	private static HashMap<Integer, ArrayList<Integer>> jobToReduceTask = new HashMap<>();	
+	private static HashMap<Integer, ArrayList<ReducerTaskInfo>> jobToReduceTask = new HashMap<>();	
 	private static HashMap<Integer, Integer> reduceTaskStatusList = new HashMap<>(); // reduce task status
 
 
@@ -95,6 +95,7 @@ public class JobTracker implements IJobTracker {
 			BlockLocationResponse blockLocationResponse = (BlockLocationResponse) Utils.deserialize(bLocationResponse);
 			List<Protobuf.HDFS.BlockLocations> blockLocationList = blockLocationResponse.getBlockLocationsList();
 
+			// breaking job into map tasks
 			ArrayList<MapTaskInfo> tasks = new ArrayList<MapTaskInfo>();
 			for(Protobuf.HDFS.BlockLocations blockLocation :blockLocationList) {
 				MapTaskInfo.Builder mapTaskInfo = MapTaskInfo.newBuilder();
@@ -112,6 +113,29 @@ public class JobTracker implements IJobTracker {
 			jobToTasks.put(jobId, tasks);
 			jobQueue.add(jobId);
 			jobStatusList.put(jobId, JOB_WAIT);
+
+			// appending reduce tasks into queue
+			ArrayList<ReducerTaskInfo> reduceTasks = new ArrayList<ReducerTaskInfo>();
+			for (MapTaskInfo mapTask : tasks) {
+				ReducerTaskInfo.Builder reducerTaskInfo = ReducerTaskInfo.newBuilder();
+
+				int mapTaskId = mapTask.getTaskId();
+				int reduceTaskId = taskCounter;
+				taskCounter++;
+
+				String mapOutputFile = "job_" + jobId + "_map_" + mapTaskId;
+				reducerTaskInfo.setJobId(jobId);
+				reducerTaskInfo.setTaskId(reduceTaskId);
+				reducerTaskInfo.addMapOutputFiles(mapOutputFile);
+
+				reducerTaskInfo.setReducerName(reducerName);
+				reducerTaskInfo.setOutputFile(outputFile);
+
+				reduceTasks.add(reducerTaskInfo.build());
+				reduceTaskStatusList.put(reduceTaskId, JOB_WAIT);
+			}
+			jobToReduceTask.put(jobId, reduceTasks);
+
 		} catch(Exception e) {
 			jobSubmitResponse.setStatus(STATUS_NOT_OK);
 			e.printStackTrace();
@@ -198,30 +222,17 @@ public class JobTracker implements IJobTracker {
 		for (Integer jobId : jobStatusList.keySet()) {
 			int status = jobStatusList.get(jobId);
 			if (status == JOB_MAP_DONE) {
-				ReducerTaskInfo.Builder reducerTaskInfo = ReducerTaskInfo.newBuilder();
-				reducerTaskInfo.setJobId(jobId);
-
-				ArrayList<MapTaskInfo> tasks = jobToTasks.get(jobId);
-				if (tasks.size() > 0) {
-					int mapTaskId = tasks.remove(0);
-					int taskId = taskCounter; 
-					jobToReduceTask.put(jobId, tasks);
-					reduceTaskStatusList.put(taskId, JOB_WAIT);
-					taskCounter++;
-
-					String mapOutputFile = "job_" + jobId + "_map_" + mapTaskId;
-					reducerTaskInfo.setTaskId(taskId);
-					reducerTaskInfo.addMapOutputFiles(mapOutputFile);
-
-					JobSubmitRequest jobSubmitRequest = jobList.get(jobId);
-					String reducerName = jobSubmitRequest.getReducerName();
-					String outputFile = jobSubmitRequest.getOutputFile();
-
-					reducerTaskInfo.setReducerName(reducerName);
-					reducerTaskInfo.setOutputFile(outputFile);
-				} else
-					continue;
-				return reducerTaskInfo.build();
+				ArrayList<ReducerTaskInfo> reduceTasks = jobToReduceTask.get(jobId);
+				if(reduceTasks.size()>0){
+					ReducerTaskInfo to_give_task = reduceTasks.get(0);
+					ArrayList<ReducerTaskInfo> newList = new ArrayList<ReducerTaskInfo>();
+					for(int i=1;i<reduceTasks.size();i++){
+						newList.add(reduceTasks.get(i));
+					}
+					reduceTasks = newList;
+					jobToReduceTask.put(jobId, reduceTasks);
+					return to_give_task;
+				}
 			}
 		}
 		return null;
@@ -265,22 +276,22 @@ public class JobTracker implements IJobTracker {
 	private void updateJobStatus() {
 		// update job status
 		for (Integer jobId : jobStatusList.keySet()) {
-			ArrayList<Integer> mapTasks = jobToTasks.get(jobId);
+			ArrayList<MapTaskInfo> mapTasks = jobToTasks.get(jobId);
 			boolean jobMapDone = true;
 			if (mapTasks != null) {
-				for (Integer task : mapTasks) {
-					if (taskStatusList.get(task) != JOB_FINISH) {
+				for (MapTaskInfo task : mapTasks) {
+					if (taskStatusList.get(task.getTaskId()) != JOB_FINISH) {
 						jobMapDone = false;
 						break;
 					}
 				}
 			}
 
-			ArrayList<Integer> reduceTasks = jobToReduceTask.get(jobId);
+			ArrayList<ReducerTaskInfo> reduceTasks = jobToReduceTask.get(jobId);
 			boolean jobReduceDone = true;
 			if (reduceTasks != null) {
-				for (Integer task : reduceTasks) {
-					if (reduceTaskStatusList.get(task) != JOB_FINISH) {
+				for (ReducerTaskInfo task : reduceTasks) {
+					if (reduceTaskStatusList.get(task.getTaskId()) != JOB_FINISH) {
 						jobReduceDone = false;
 						break;
 					}
@@ -296,19 +307,19 @@ public class JobTracker implements IJobTracker {
 	public void printJobStatus() {
 		for (Integer jobId : jobStatusList.keySet()) {
 			System.out.println("Job: " + jobId + "Status :" + jobStatusList.get(jobId));
-			ArrayList<Integer> mapTasks = jobToTasks.get(jobId);
+			ArrayList<MapTaskInfo> mapTasks = jobToTasks.get(jobId);
 			if (mapTasks != null) {
 				System.out.println("Map");
-				for (Integer task : mapTasks) {
-					System.out.println(task + ":" + taskStatusList.get(task));
+				for (MapTaskInfo task : mapTasks) {
+					System.out.println(task + ":" + taskStatusList.get(task.getTaskId()));
 				}
 			}
 
-			ArrayList<Integer> reduceTasks = jobToReduceTask.get(jobId);
+			ArrayList<ReducerTaskInfo> reduceTasks = jobToReduceTask.get(jobId);
 			if (reduceTasks != null) {
 				System.out.println("Reduce");
-				for (Integer task : reduceTasks) {
-					System.out.println(task + ":" + reduceTaskStatusList.get(task));
+				for (ReducerTaskInfo task : reduceTasks) {
+					System.out.println(task + ":" + reduceTaskStatusList.get(task.getTaskId()));
 				}
 			}
 		}	
