@@ -128,12 +128,12 @@ public class TaskTracker {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		String mapOutput = new MapNode().map(fileContent);
+		String mapOutput = new MapNode().map(fileContent) + "\n";
 		System.out.println(mapOutput);
 
 		// write to file
 		String fileName = "job_" + jobId + "_map_" + taskId;
-		client.put_file(fileName, fileContent);
+		client.put_file(fileName, mapOutput);
 	}
 
 	private static void doReduceTask(ReducerTaskInfo reducerTaskInfo) {
@@ -143,12 +143,16 @@ public class TaskTracker {
 		List<String> mapOutputFiles = reducerTaskInfo.getMapOutputFilesList();
 		String outputFile = reducerTaskInfo.getOutputFile();
 		String fileContent = "";
+		String mapOutput = "";
 		for (String fileName : mapOutputFiles) {
-			fileContent += client.get_file(fileName);
+			fileContent = client.get_file(fileName);
+			for (String part : fileContent.split("\n")) {
+				String output = new ReduceNode().reduce(fileContent);
+				mapOutput += output;
+			}
 		}
-		String mapOutput = new ReduceNode().reduce(fileContent);
 		String outputFileName = outputFile + "_" + jobId + "_" + taskId;
-		client.put_file(outputFileName, fileContent); 
+		client.put_file(outputFileName, mapOutput); 
 	}
 
 	private static void addMapTaskStatus() {

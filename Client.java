@@ -51,7 +51,7 @@ public class Client {
 			if (command.equals("get")) {
 				get_file(fileName);
 			} else if (command.equals("put")) {
-				put_file(fileName, "this is file content\n");
+				put_file(fileName, "this is file key content\n");
 			} else if (command.equals("list")) {
 				list_files();
 			} else if (command.equals("debug")) {

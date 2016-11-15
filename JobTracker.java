@@ -36,6 +36,9 @@ public class JobTracker implements IJobTracker {
 	private static HashMap<Integer, ArrayList<ReducerTaskInfo>> jobToReduceTask = new HashMap<>();	
 	private static HashMap<Integer, Integer> reduceTaskStatusList = new HashMap<>(); // reduce task status
 
+	// reducer's list
+	private static HashMap<Integer, Set<Integer>> reducerList = new HashMap<>();
+	private static HashMap<Integer, Integer> reducerAllowed = new HashMap<>();
 
 	private static final int JOB_FINISH = 2;
 	private static final int JOB_MAP_DONE = 1;
@@ -90,6 +93,8 @@ public class JobTracker implements IJobTracker {
 		inputFile = jobSubmitRequest.getInputFile();
 		outputFile = jobSubmitRequest.getOutputFile();
 		numReduceTasks = jobSubmitRequest.getNumReduceTasks();
+
+		reducerAllowed.put(jobId, numReduceTasks);
 		
 		OpenFileRequest.Builder openFileRequest = OpenFileRequest.newBuilder();
 		openFileRequest.setFileName(inputFile);
@@ -200,9 +205,10 @@ public class JobTracker implements IJobTracker {
 				heartBeatResponse.addMapTasks(mapTaskInfo);
 		}
 		if (numReduceSlotsFree > 0) {
-			ReducerTaskInfo reduceTaskInfo = assignJobToReduce();
-			if (reduceTaskInfo != null)
+			ReducerTaskInfo reduceTaskInfo = assignJobToReduce(taskTrackerId);
+			if (reduceTaskInfo != null) {
 				heartBeatResponse.addReduceTasks(reduceTaskInfo);
+			}
 		}
 		heartBeatResponse.setStatus(STATUS_OK);
 		
@@ -239,9 +245,27 @@ public class JobTracker implements IJobTracker {
         return null;
 	}
 
-	private ReducerTaskInfo assignJobToReduce() {
+	private ReducerTaskInfo assignJobToReduce(int taskTrackerId) {
 		for (Integer jobId : jobStatusList.keySet()) {
 			int status = jobStatusList.get(jobId);
+
+			Set<Integer> reducers = reducerList.get(jobId);
+			int allowed = reducerAllowed.get(jobId);
+			if (allowed == reducers.size()) {
+				int done = 0;
+				for (int i : reducers) {
+					if (taskTrackerId == i) {
+						done = 1;
+						break;
+					}
+				}
+				if(done==0) continue;
+			} else if (reducers.size() < allowed) {
+				reducers.add(taskTrackerId);
+				reducerList.put(jobId, reducers);
+			} else
+				continue;
+
 			if (status == JOB_MAP_DONE) {
 				ArrayList<ReducerTaskInfo> reduceTasks = jobToReduceTask.get(jobId);
 				if(reduceTasks.size()>0){
