@@ -35,12 +35,14 @@ public class Client {
 		String line = "";
 		String command = "";
 		String fileName = "";
+		String outFile = "";
 		while (true) {
 			line = in.nextLine();
-			try {
 				String[] arguments = line.trim().split("\\s+");
+			try {
 				command = arguments[0];
 				fileName = arguments[1];
+				// outFile = 
 			} catch (Exception e) {
 				if (command.equals("get") || command.equals("put")) {
 					System.out.println("<command> <filename>");
@@ -51,8 +53,8 @@ public class Client {
 			if (command.equals("get")) {
 				get_file(fileName);
 			} else if (command.equals("put")) {
-				String data = getFileContent(fileName);
-				put_file(fileName, data);
+				String data = getFileContent(arguments[2]);
+				put_file(outFile, data);
 			} else if (command.equals("list")) {
 				list_files();
 			} else if (command.equals("debug")) {
@@ -128,63 +130,63 @@ public class Client {
 		openFileRequest.setFileName(fileName);
 		openFileRequest.setForRead(false);
 
-		try {
-			byte[] oFileRespose = nameNode.openFile(Utils.serialize(openFileRequest.build()));
-			OpenFileResponse openFileResponse = (OpenFileResponse) Utils.deserialize(oFileRespose);
-			List<Integer> blockList = openFileResponse.getBlockNumsList();
-			status = openFileResponse.getStatus();
-			fileHandle = openFileResponse.getHandle();
+		int loop = ((data.length())/(1024)) + 1;
+		int lastIdx = 0;
+		System.out.println(loop);
+		
+			try {
+				byte[] oFileRespose = nameNode.openFile(Utils.serialize(openFileRequest.build()));
+				OpenFileResponse openFileResponse = (OpenFileResponse) Utils.deserialize(oFileRespose);
+				List<Integer> blockList = openFileResponse.getBlockNumsList();
+				status = openFileResponse.getStatus();
+				fileHandle = openFileResponse.getHandle();
 
-			System.out.println("file open status: " + status);
-			System.out.println("file handle: " + fileHandle);
-			//nameNode.test();
-			
-			AssignBlockRequest.Builder assignBlockRequest = AssignBlockRequest.newBuilder();
-			assignBlockRequest.setHandle(fileHandle);
-
-			byte[] aBlockResponse = nameNode.assignBlock(Utils.serialize(assignBlockRequest.build()));
-			AssignBlockResponse assignBlockResponse = (AssignBlockResponse) Utils.deserialize(aBlockResponse);
-
-			int assignBlockStatus = assignBlockResponse.getStatus();
-			BlockLocations blockLocations = assignBlockResponse.getNewBlock();
-
-			System.out.println("block assign status: " + assignBlockStatus);
-
-
-			List<DataNodeLocation> dataNodeLocationList = blockLocations.getLocationsList();
-			// System.out.println(dataNodeLocationList.)
-			for(DataNodeLocation dataNodeLocation : dataNodeLocationList) {
-				String dnIP = dataNodeLocation.getIp();
-				int dnPort = dataNodeLocation.getPort();
-				int blockNumber = blockLocations.getBlockNumber();
-				Registry registry = LocateRegistry.getRegistry(dnIP,dnPort);
-		    	IDataNode dataNode = (IDataNode) registry.lookup("datanode");
-
-		    	WriteBlockRequest.Builder writeBlockRequest = WriteBlockRequest.newBuilder();
-				writeBlockRequest.setBlockNumber(blockNumber);
-
-				int loop = ((data.length())/64) + 1;
-				int lastIdx = 0;
-				System.out.println(loop);
+				System.out.println("file open status: " + status);
+				System.out.println("file handle: " + fileHandle);
+				//nameNode.test();
 				for (int i=0; i<loop; i++) {
-					String sub;
-					if (i == loop-1)
-						sub = data.substring(lastIdx);
-					else
-						sub = data.substring(lastIdx, lastIdx+64);
-					System.out.println(sub);
-					writeBlockRequest.addData(ByteString.copyFromUtf8(sub));
-				}
+			String sub;
+			if (i == loop-1)
+				sub = data.substring(lastIdx);
+			else
+				sub = data.substring(lastIdx, lastIdx+(1024));
+			System.out.println(sub);
+				AssignBlockRequest.Builder assignBlockRequest = AssignBlockRequest.newBuilder();
+				assignBlockRequest.setHandle(fileHandle);
+
+				byte[] aBlockResponse = nameNode.assignBlock(Utils.serialize(assignBlockRequest.build()));
+				AssignBlockResponse assignBlockResponse = (AssignBlockResponse) Utils.deserialize(aBlockResponse);
+
+				int assignBlockStatus = assignBlockResponse.getStatus();
+				BlockLocations blockLocations = assignBlockResponse.getNewBlock();
+
+				System.out.println("block assign status: " + assignBlockStatus);
+
+
+				List<DataNodeLocation> dataNodeLocationList = blockLocations.getLocationsList();
+				// System.out.println(dataNodeLocationList.)
 				
 
-				byte[] wBlockResponse = dataNode.writeBlock(Utils.serialize(writeBlockRequest.build()));
-				WriteBlockResponse writeBlockResponse = (WriteBlockResponse) Utils.deserialize(wBlockResponse);
-				int writeBlockStatus = writeBlockResponse.getStatus();
-				System.out.println("block write status: " + writeBlockStatus);
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+				for(DataNodeLocation dataNodeLocation : dataNodeLocationList) {
+					String dnIP = dataNodeLocation.getIp();
+					int dnPort = dataNodeLocation.getPort();
+					int blockNumber = blockLocations.getBlockNumber();
+					Registry registry = LocateRegistry.getRegistry(dnIP,dnPort);
+			    	IDataNode dataNode = (IDataNode) registry.lookup("datanode");
+
+			    	WriteBlockRequest.Builder writeBlockRequest = WriteBlockRequest.newBuilder();
+					writeBlockRequest.setBlockNumber(blockNumber);
+					writeBlockRequest.addData(ByteString.copyFromUtf8(sub));
+				
+
+					byte[] wBlockResponse = dataNode.writeBlock(Utils.serialize(writeBlockRequest.build()));
+					WriteBlockResponse writeBlockResponse = (WriteBlockResponse) Utils.deserialize(wBlockResponse);
+					int writeBlockStatus = writeBlockResponse.getStatus();
+					System.out.println("block write status: " + writeBlockStatus);
+				}
+			}} catch (Exception e) {
+				e.printStackTrace();
+			}		
 		
 		try {
 			if (fileHandle != -1) {
