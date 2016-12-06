@@ -1,0 +1,13 @@
+MapReduce on top of Distributed File System.
+
+Features:
+* Read/Write files
+* Replications
+* List files
+* Heartbeat
+
+
+TODO:
+* Make it persistent
+* Append operation
+* Makefile
