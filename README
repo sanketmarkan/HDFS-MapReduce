@@ -11,3 +11,6 @@ TODO:
 * Make it persistent
 * Append operation
 * Makefile
+
+Command:
+java -cp protobuf-java-3.0.2.jar: <className>

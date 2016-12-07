@@ -14,7 +14,7 @@ public class Client {
 	private static INameNode nameNode;
 	public Client() {
 		try {
-			Registry registry = LocateRegistry.getRegistry(Constants.nnIp,Constants.nnPort);
+			Registry registry = LocateRegistry.getRegistry(/*Constants.nnIp,Constants.nnPort*/);
 			nameNode = (INameNode) registry.lookup("namenode");
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -24,7 +24,7 @@ public class Client {
 	public static void main(String args[]) {
 		if (nameNode == null) {
 			try {
-				Registry registry = LocateRegistry.getRegistry(Constants.nnIp,Constants.nnPort);
+				Registry registry = LocateRegistry.getRegistry(/*Constants.nnIp,Constants.nnPort*/);
 				nameNode = (INameNode) registry.lookup("namenode");
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -49,11 +49,14 @@ public class Client {
 					continue;
 				}
 			}
+			//System.out.println(command);
+			//System.out.println(fileName);
 
 			if (command.equals("get")) {
 				get_file(fileName);
 			} else if (command.equals("put")) {
-				String data = getFileContent(arguments[2]);
+				outFile = arguments[2];
+				String data = getFileContent(fileName);
 				put_file(outFile, data);
 			} else if (command.equals("list")) {
 				list_files();

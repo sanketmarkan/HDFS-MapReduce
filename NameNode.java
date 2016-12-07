@@ -76,6 +76,9 @@ public class NameNode implements INameNode {
 
     public static void init() {
     	try {
+    		// grabbing offline data
+    		setupOffline();
+    		// binding to registry
             NameNode obj = new NameNode();
             INameNode stub = (INameNode) UnicastRemoteObject.exportObject(obj, 0);
             Registry registry = LocateRegistry.getRegistry();
@@ -300,5 +303,47 @@ public class NameNode implements INameNode {
 			Integer value = handleList.get(i);
 			System.out.println(i + " " + value);
 		}
+	}
+
+	// setup offline storage
+	public static void setupOffline() throws IOException {
+		File offlineStore = new File(Constants.OFFLINE_DIR);
+		if (!offlineStore.exists()) {
+			System.out.println("Creating offline store");
+			offlineStore.mkdir();
+		}
+
+		File fileList = new File(Constants.OFFLINE_DIR + "/" + Constants.FILE_LIST);
+		if (!fileList.exists()) {
+			fileList.createNewFile();
+			System.out.println("Creating files list");
+		}
+		// load file list from the store
+		printFileContent(fileList);
+
+		File blocksList = new File(Constants.OFFLINE_DIR + "/" + Constants.BLOCKS_LIST);
+		if (!blocksList.exists()) {
+			blocksList.createNewFile();
+			System.out.println("Creating blocks list");
+		}
+		// load block list from the store
+		printFileContent(blocksList);
+	}
+
+	public static void printFileContent(File file) {
+		String content = "";
+        ReadBlockResponse.Builder response = ReadBlockResponse.newBuilder();
+        if (file.exists()) {
+            try {
+                BufferedReader br = new BufferedReader(new FileReader(file));
+                String currLine;
+                while ((currLine = br.readLine()) != null) {
+                	content += currLine;
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        System.out.println(content);
 	}
 }

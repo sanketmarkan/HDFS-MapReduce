@@ -134,7 +134,7 @@ public class DataNode implements IDataNode {
         for(int block:blockList)
             request.addBlockNumbers(block);
         try{
-            Registry registry = LocateRegistry.getRegistry(Constants.nnIp,Constants.nnPort);
+            Registry registry = LocateRegistry.getRegistry(/*Constants.nnIp,Constants.nnPort*/);
             INameNode stub = (INameNode) registry.lookup("namenode");
             stub.blockReport(Utils.serialize(request.build()));
         } catch (Exception e) {
@@ -146,11 +146,11 @@ public class DataNode implements IDataNode {
 	public static void sendHeartBeat() throws RemoteException{
 		try{
 			// Registry registry = LocateRegistry.getRegistry(nnIP, nnPort);
-            Registry registry = LocateRegistry.getRegistry(Constants.nnIp,Constants.nnPort);
+            Registry registry = LocateRegistry.getRegistry(/*Constants.nnIp,Constants.nnPort*/);
 	        INameNode stub = (INameNode) registry.lookup("namenode");
             HeartBeatRequest.Builder request = HeartBeatRequest.newBuilder();
 	        request.setId(myId);
-            String networkInterfaceName = "wlp6s0";
+            String networkInterfaceName = "lo";
             Inet4Address inetAddress = null;
             try {
                 Enumeration<InetAddress> enumeration = NetworkInterface.getByName(networkInterfaceName).getInetAddresses();
