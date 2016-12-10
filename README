@@ -13,4 +13,6 @@ TODO:
 * Makefile
 
 Command:
-java -cp protobuf-java-3.0.2.jar: <className>
+rmiregistry // run to start rmiregistry, inside bin
+java -cp protobuf-java-3.0.2.jar: <className> // To run a class
+
