@@ -77,7 +77,7 @@ public class NameNode implements INameNode {
     public static void init() {
     	try {
     		// grabbing offline data
-    		setupOffline();
+    		readFsImage();
     		// binding to registry
             NameNode obj = new NameNode();
             INameNode stub = (INameNode) UnicastRemoteObject.exportObject(obj, 0);
@@ -306,8 +306,8 @@ public class NameNode implements INameNode {
 	}
 
 	// setup offline storage
-	public static void setupOffline() throws IOException {
-		File offlineStore = new File(Constants.OFFLINE_DIR);
+	public static void readFsImage() {
+		/*File offlineStore = new File(Constants.OFFLINE_DIR);
 		if (!offlineStore.exists()) {
 			System.out.println("Creating offline store");
 			offlineStore.mkdir();
@@ -327,7 +327,7 @@ public class NameNode implements INameNode {
 			System.out.println("Creating blocks list");
 		}
 		// load block list from the store
-		printFileContent(blocksList);
+		printFileContent(blocksList);*/
 	}
 
 	public static void printFileContent(File file) {
