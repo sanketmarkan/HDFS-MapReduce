@@ -1,0 +1,18 @@
+MapReduce on top of Distributed File System.
+
+Features:
+* Read/Write files
+* Replications
+* List files
+* Heartbeat
+
+
+TODO:
+* Make it persistent
+* Append operation
+* Makefile
+
+Command:
+rmiregistry // run to start rmiregistry, inside bin
+java -cp protobuf-java-3.0.2.jar: <className> // To run a class
+
