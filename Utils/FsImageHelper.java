@@ -13,22 +13,23 @@ import javax.xml.transform.stream.StreamResult;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import Utils.Constants;
 // Helper class to read/write FsImage
-public class FsImage {
+public class FsImageHelper {
 	private static DocumentBuilderFactory docBuildFactory;
 	private static DocumentBuilder docBuilder;
 	private static Document doc;
 	private static Element root;
-	private static FsImage fsImage = null;
-	private FsImage() {
-		init();			
+	private static FsImageHelper fsImage = null;
+	private FsImageHelper() {
+		init();
 	}
 
-	public static FsImage getInstance() {
+	public static FsImageHelper getInstance() {
 		if (fsImage == null) {
-			fsImage = new FsImage();
+			fsImage = new FsImageHelper();
 		}
 		return fsImage;
 	}
@@ -43,6 +44,7 @@ public class FsImage {
 				doc = docBuilder.parse(inputFile);
 				root = doc.getDocumentElement();
 				System.out.println("yeah");
+				printTree();
 			} else {
 				doc = docBuilder.newDocument();
 				root = doc.createElementNS("http://github.com/shivtej1505/HDFS-MapReduce", "files");
@@ -53,27 +55,17 @@ public class FsImage {
 	    }
 	}
 
-	public static void main(String[] args) {
-		FsImage fs = FsImage.getInstance();
-		ArrayList<Integer> list = new ArrayList<Integer>();
-		list.add(1);
-		list.add(4);
-		list.add(11);
-		fs.addFileEntry("asdf", 1, list);
-		fs.addFileEntry("adf", 5, list);
-		fs.addFileEntry("lol", 14, list); 
-		printTree();
-	}
-
 	public static void addFileEntry(String fileName, int fileId, ArrayList<Integer> blockList) {
 		Element fileEntry = doc.createElement("file");
 		fileEntry.setAttribute("name", fileName);
 		fileEntry.setAttribute("id", String.valueOf(fileId));
 		Element blocks = doc.createElement("blocks");
-		for (Integer block : blockList) {
-			Element ele= doc.createElement("block");
-			ele.appendChild(doc.createTextNode(String.valueOf(block)));
-			blocks.appendChild(ele);
+		if (blockList != null) {
+			for (Integer block : blockList) {
+				Element ele= doc.createElement("block");
+				ele.appendChild(doc.createTextNode(String.valueOf(block)));
+				blocks.appendChild(ele);
+			}
 		}
 		fileEntry.appendChild(blocks);
 		root.appendChild(fileEntry);
@@ -92,7 +84,20 @@ public class FsImage {
 	    }
     }
 
-    public static void getFileEntries() {
+    public static HashMap<String, Integer> getFileEntries() {
+    	HashMap<String, Integer> fileList = new HashMap<>();
+    	NodeList files = root.getElementsByTagName("file");
+    	for(int i=0; i<files.getLength(); i++) {
+    		Node file = files.item(i);
+    		if (file.getNodeType() == Node.ELEMENT_NODE) {
+    			String fileName = ((Element) file).getAttribute("name");
+    			Integer fileId = Integer.valueOf(((Element) file).getAttribute("id"));
+    			fileList.put(fileName, fileId);
+    			System.out.println("name: " + fileName);
+    			System.out.println("id: " + fileId);
+    		}
+    	}
+    	return fileList;
     }
 
     public static void printTree() {
