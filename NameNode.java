@@ -14,7 +14,7 @@ import Utils.*;
 import INameNode.*;
 
 public class NameNode implements INameNode {
-	private static HashMap<String, Integer> fileToInt = new HashMap<>();
+	private static HashMap<String, Integer> fileToInt;
 	private static HashMap<Integer, ArrayList<Integer>> blockList = new HashMap<>();
 	private static HashMap<String, ArrayList<String>> filesDir = new HashMap<>();
 	private static HashMap<Integer, ArrayList<DataNodeLocation>> blockLocation = new HashMap<>();
@@ -82,7 +82,6 @@ public class NameNode implements INameNode {
     	Registry registry = null;
     	try {
     		fsImageHelper = FsImageHelper.getInstance();
-    		// grabbing offline data
     		readFsImage();
     		// binding to registry
     		obj = new NameNode();
@@ -126,8 +125,11 @@ public class NameNode implements INameNode {
 		System.out.println(isFileExist);
 		if (forRead) {
 			if (isFileExist) {
-				for(int a : blockList.get((fileToInt.get(fileName))))
-					openFileResponse.addBlockNums(a);
+				ArrayList<Integer> fileBlockList = blockList.get((fileToInt.get(fileName)));
+				if (fileBlockList != null) {
+					for(int a : fileBlockList)
+						openFileResponse.addBlockNums(a);
+				}
 				openFileResponse.setStatus(STATUS_OK);
 			} else {
 				// ERROR: No such file
@@ -216,6 +218,7 @@ public class NameNode implements INameNode {
 		fileBlockList.add(blockId);
 		lock.lock();
 		blockList.put(fileId, fileBlockList); 
+		fsImageHelper.addFileBlock(fileId, blockId);
 		lock.unlock();
 		BlockLocations.Builder blockLocations = BlockLocations.newBuilder();
 		blockLocations.setBlockNumber(blockId);
@@ -329,8 +332,20 @@ public class NameNode implements INameNode {
 
 	// setup offline storage
 	public static void readFsImage() {
-		HashMap<String, Integer> list = fsImageHelper.getFileEntries();
-		System.out.println(list);
+		fileToInt = fsImageHelper.getFileEntries();
+		System.out.println(fileToInt);
+		for (String fileName: fileToInt.keySet()) {
+			int fileId = fileToInt.get(fileName);
+			fileCounter = max(fileId+1 , fileCounter);
+			ArrayList<Integer> list = fsImageHelper.getFileBlocks(fileId);
+			System.out.println("file block list: " + fileId);
+			System.out.println(list);
+			for(int blockId : list)
+				blockCounter = max(blockId+1, blockCounter);
+			blockList.put(fileId, list);
+		}
+		System.out.println(fileCounter);
+		System.out.println(blockCounter);
 	}
 
 	public static void printFileContent(File file) {
@@ -348,5 +363,11 @@ public class NameNode implements INameNode {
             }
         }
         System.out.println(content);
+	}
+
+	public static int max(int a, int b) {
+		if (a > b)
+			return a;
+		return b;
 	}
 }

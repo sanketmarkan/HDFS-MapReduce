@@ -43,8 +43,6 @@ public class FsImageHelper {
 			if (inputFile.exists()) {
 				doc = docBuilder.parse(inputFile);
 				root = doc.getDocumentElement();
-				System.out.println("yeah");
-				printTree();
 			} else {
 				doc = docBuilder.newDocument();
 				root = doc.createElementNS("http://github.com/shivtej1505/HDFS-MapReduce", "files");
@@ -72,6 +70,26 @@ public class FsImageHelper {
 		updateFsImage();
     }
 
+    public static void addFileBlock(int fileId, int blockId) {
+    	NodeList files = root.getElementsByTagName("file");
+    	for(int i=0; i<files.getLength(); i++) {
+    		Node file = files.item(i);
+    		if (file.getNodeType() == Node.ELEMENT_NODE) {
+    			Integer id = Integer.valueOf(((Element) file).getAttribute("id"));
+    			if (id == fileId) {
+    				NodeList list = ((Element) file).getElementsByTagName("blocks");
+    				Element blocks = (Element) list.item(0);
+					Element ele = doc.createElement("block");
+					ele.appendChild(doc.createTextNode(String.valueOf(blockId)));
+					blocks.appendChild(ele);
+    			}
+    		}
+    	}
+    	//printTree();
+    	updateFsImage();
+    }
+
+
     public static void updateFsImage() {
     	try {
 	    	Transformer transformer = TransformerFactory.newInstance().newTransformer();
@@ -93,11 +111,33 @@ public class FsImageHelper {
     			String fileName = ((Element) file).getAttribute("name");
     			Integer fileId = Integer.valueOf(((Element) file).getAttribute("id"));
     			fileList.put(fileName, fileId);
-    			System.out.println("name: " + fileName);
-    			System.out.println("id: " + fileId);
+    			//System.out.println("name: " + fileName);
+    			//System.out.println("id: " + fileId);
     		}
     	}
     	return fileList;
+    }
+
+    public static ArrayList<Integer> getFileBlocks(int fileId) {
+    	ArrayList<Integer> blockList = new ArrayList<Integer>();
+    	NodeList files = root.getElementsByTagName("file");
+    	for(int i=0; i<files.getLength(); i++) {
+    		Node file = files.item(i);
+    		if (file.getNodeType() == Node.ELEMENT_NODE) {
+    			Integer id = Integer.valueOf(((Element) file).getAttribute("id"));
+    			if (id == fileId) {
+    				Node list = ((Element) file).getElementsByTagName("blocks").item(0);
+    				NodeList blocks = ((Element) list).getElementsByTagName("block");
+    				for(int j=0; j<blocks.getLength(); j++) {
+    					Element block = (Element) blocks.item(j);
+    					String blockId = block.getTextContent();
+    					blockList.add(Integer.valueOf(blockId));
+    				}
+    				break;
+    			}
+    		}
+    	}
+    	return blockList;
     }
 
     public static void printTree() {
