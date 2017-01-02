@@ -1,5 +1,6 @@
 import java.rmi.RemoteException;
 import java.rmi.registry.Registry;
+import java.rmi.AlreadyBoundException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.server.UnicastRemoteObject;
 
@@ -13,7 +14,7 @@ import Utils.*;
 import INameNode.*;
 
 public class NameNode implements INameNode {
-	private static HashMap<String, Integer> fileToInt = new HashMap<>();
+	private static HashMap<String, Integer> fileToInt;
 	private static HashMap<Integer, ArrayList<Integer>> blockList = new HashMap<>();
 	private static HashMap<String, ArrayList<String>> filesDir = new HashMap<>();
 	private static HashMap<Integer, ArrayList<DataNodeLocation>> blockLocation = new HashMap<>();
@@ -23,6 +24,7 @@ public class NameNode implements INameNode {
 	private static int fileCounter = 1;
 	private static int blockCounter = 1;
 	private static int handleCounter = 1;
+	private static FsImageHelper fsImageHelper;
 	private static Lock lock = new ReentrantLock();
 	private static final int STATUS_OK = 1;
 	private static final int STATUS_NOT_OK = 0;
@@ -75,16 +77,34 @@ public class NameNode implements INameNode {
 	}
 
     public static void init() {
+    	NameNode obj;
+    	INameNode stub = null;
+    	Registry registry = null;
     	try {
-    		// grabbing offline data
-    		setupOffline();
+    		fsImageHelper = FsImageHelper.getInstance();
+    		readFsImage();
     		// binding to registry
-            NameNode obj = new NameNode();
-            INameNode stub = (INameNode) UnicastRemoteObject.exportObject(obj, 0);
-            Registry registry = LocateRegistry.getRegistry();
+    		obj = new NameNode();
+        	stub = (INameNode) UnicastRemoteObject.exportObject(obj, 0);
+        	registry = LocateRegistry.getRegistry();
             registry.bind("namenode", stub);
             System.out.println("Namenode ready");
-        } catch (Exception e) {
+        } catch (AlreadyBoundException e) {
+        	System.out.println("already bound");
+        	if (registry != null && stub != null)
+        		rebind(registry, stub);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void rebind(Registry registry, INameNode stub) {
+    	try {
+    		if (registry != null) {
+    			registry.rebind("namenode", stub);
+    			System.out.println("Namenode rebinded");
+    		}
+    	} catch (RemoteException e) {
             e.printStackTrace();
         }
     }
@@ -105,8 +125,11 @@ public class NameNode implements INameNode {
 		System.out.println(isFileExist);
 		if (forRead) {
 			if (isFileExist) {
-				for(int a : blockList.get((fileToInt.get(fileName))))
-					openFileResponse.addBlockNums(a);
+				ArrayList<Integer> fileBlockList = blockList.get((fileToInt.get(fileName)));
+				if (fileBlockList != null) {
+					for(int a : fileBlockList)
+						openFileResponse.addBlockNums(a);
+				}
 				openFileResponse.setStatus(STATUS_OK);
 			} else {
 				// ERROR: No such file
@@ -120,8 +143,9 @@ public class NameNode implements INameNode {
 				System.out.println("No updated allowed");
 				openFileResponse.setStatus(STATUS_NOT_OK);
 			} else {
-				System.out.println("Creating file....");	
+				System.out.println("Creating file....");
 				fileToInt.put(fileName, fileCounter);
+				fsImageHelper.addFileEntry(fileName, fileCounter, null);
 				lock.lock();
 				int fileId = fileCounter;
 				int handle = handleCounter;
@@ -194,6 +218,7 @@ public class NameNode implements INameNode {
 		fileBlockList.add(blockId);
 		lock.lock();
 		blockList.put(fileId, fileBlockList); 
+		fsImageHelper.addFileBlock(fileId, blockId);
 		lock.unlock();
 		BlockLocations.Builder blockLocations = BlockLocations.newBuilder();
 		blockLocations.setBlockNumber(blockId);
@@ -306,28 +331,21 @@ public class NameNode implements INameNode {
 	}
 
 	// setup offline storage
-	public static void setupOffline() throws IOException {
-		File offlineStore = new File(Constants.OFFLINE_DIR);
-		if (!offlineStore.exists()) {
-			System.out.println("Creating offline store");
-			offlineStore.mkdir();
+	public static void readFsImage() {
+		fileToInt = fsImageHelper.getFileEntries();
+		System.out.println(fileToInt);
+		for (String fileName: fileToInt.keySet()) {
+			int fileId = fileToInt.get(fileName);
+			fileCounter = max(fileId+1 , fileCounter);
+			ArrayList<Integer> list = fsImageHelper.getFileBlocks(fileId);
+			System.out.println("file block list: " + fileId);
+			System.out.println(list);
+			for(int blockId : list)
+				blockCounter = max(blockId+1, blockCounter);
+			blockList.put(fileId, list);
 		}
-
-		File fileList = new File(Constants.OFFLINE_DIR + "/" + Constants.FILE_LIST);
-		if (!fileList.exists()) {
-			fileList.createNewFile();
-			System.out.println("Creating files list");
-		}
-		// load file list from the store
-		printFileContent(fileList);
-
-		File blocksList = new File(Constants.OFFLINE_DIR + "/" + Constants.BLOCKS_LIST);
-		if (!blocksList.exists()) {
-			blocksList.createNewFile();
-			System.out.println("Creating blocks list");
-		}
-		// load block list from the store
-		printFileContent(blocksList);
+		System.out.println(fileCounter);
+		System.out.println(blockCounter);
 	}
 
 	public static void printFileContent(File file) {
@@ -345,5 +363,11 @@ public class NameNode implements INameNode {
             }
         }
         System.out.println(content);
+	}
+
+	public static int max(int a, int b) {
+		if (a > b)
+			return a;
+		return b;
 	}
 }

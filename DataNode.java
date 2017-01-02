@@ -1,4 +1,5 @@
 import java.rmi.RemoteException;
+import java.rmi.ConnectException;
 
 import java.rmi.server.UnicastRemoteObject;
 
@@ -33,8 +34,10 @@ public class DataNode implements IDataNode {
                         } catch (InterruptedException e) {
                             // nope
                         }
+                    } catch (ConnectException e) {
+                        System.out.println("NameNode not found");
                     } catch (Exception e) {
-                        e.printStackTrace();
+                        //e.printStackTrace();
                     }
                 }
             }
@@ -50,8 +53,10 @@ public class DataNode implements IDataNode {
                         } catch (InterruptedException e) {
                             // nope
                         }
+                    } catch (ConnectException e) {
+                        System.out.println("NameNode not found");
                     } catch (Exception e) {
-                        e.printStackTrace();
+                        //e.printStackTrace();
                     }
                 }
             }
